@@ -1,0 +1,3286 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>01 AkentS 02</title>
+  <style>
+    /* ============================================================
+       DESIGN TOKENS & RESET
+    ============================================================ */
+    :root {
+      --bg-base:       #0a0b0f;
+      --bg-surface:    #12141a;
+      --bg-card:       #1a1d26;
+      --bg-hover:      #222535;
+      --accent:        #6c63ff;
+      --accent-alt:    #00d4aa;
+      --accent-warn:   #f59e0b;
+      --accent-danger: #ef4444;
+      --text-primary:  #f0f1f5;
+      --text-secondary:#8b8fa8;
+      --text-muted:    #555872;
+      --border:        #2a2d3e;
+      --radius:        12px;
+      --radius-sm:     8px;
+      --sidebar-w:     220px;
+      --topbar-h:      56px;
+      --font:          'Inter', 'Noto Sans Thai', sans-serif;
+      --shadow:        0 4px 24px rgba(0,0,0,.45);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; background: var(--bg-base); color: var(--text-primary); font-family: var(--font); font-size: 14px; line-height: 1.6; }
+    a { color: inherit; text-decoration: none; }
+    button { cursor: pointer; border: none; background: none; color: inherit; font: inherit; }
+    input, textarea, select { font: inherit; color: inherit; background: var(--bg-card); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: .5rem .75rem; outline: none; width: 100%; }
+    input:focus, textarea:focus { border-color: var(--accent); }
+    ::-webkit-scrollbar { width: 5px; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+
+    /* ============================================================
+       LAYOUT SHELL
+    ============================================================ */
+    .shell { display: flex; height: 100vh; overflow: hidden; }
+
+    /* ---- SIDEBAR ---- */
+    .sidebar {
+      width: var(--sidebar-w);
+      background: var(--bg-surface);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      flex-shrink: 0;
+    }
+    .sidebar-logo {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      padding: 1.1rem 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .logo-mark {
+      width: 32px; height: 32px;
+      background: linear-gradient(135deg, var(--accent), var(--accent-alt));
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 800; font-size: 13px; color: #fff; letter-spacing: -.5px;
+    }
+    .logo-text { font-weight: 700; font-size: 15px; letter-spacing: .5px; }
+    .logo-text span { color: var(--accent); }
+
+    .sidebar-nav { flex: 1; padding: .75rem .5rem; display: flex; flex-direction: column; gap: 2px; overflow-y: auto; }
+    .nav-item {
+      display: flex; align-items: center; gap: .65rem;
+      padding: .55rem .75rem;
+      border-radius: var(--radius-sm);
+      color: var(--text-secondary);
+      font-weight: 500;
+      transition: background .15s, color .15s;
+      cursor: pointer;
+    }
+    .nav-item:hover { background: var(--bg-hover); color: var(--text-primary); }
+    .nav-item.active { background: rgba(108,99,255,.18); color: var(--accent); }
+    .nav-item .icon { font-size: 16px; width: 20px; text-align: center; }
+    .nav-badge {
+      margin-left: auto;
+      background: var(--accent);
+      color: #fff;
+      font-size: 10px;
+      font-weight: 700;
+      padding: 1px 6px;
+      border-radius: 99px;
+    }
+    .nav-section-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      padding: .75rem .75rem .25rem;
+    }
+
+    .sidebar-footer {
+      padding: .75rem .5rem;
+      border-top: 1px solid var(--border);
+    }
+    .profile-btn {
+      display: flex; align-items: center; gap: .65rem;
+      padding: .55rem .75rem;
+      border-radius: var(--radius-sm);
+      cursor: pointer; transition: background .15s;
+      width: 100%;
+    }
+    .profile-btn:hover { background: var(--bg-hover); }
+    .avatar {
+      width: 30px; height: 30px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent-alt));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700; flex-shrink: 0;
+    }
+    .profile-info { min-width: 0; }
+    .profile-name { font-size: 13px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .profile-role { font-size: 11px; color: var(--text-muted); }
+
+    /* ---- MAIN AREA ---- */
+    .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+    .topbar {
+      height: var(--topbar-h);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items: center;
+      padding: 0 1.25rem;
+      gap: 1rem;
+      flex-shrink: 0;
+    }
+    .topbar-title { font-size: 16px; font-weight: 700; }
+    .topbar-subtitle { font-size: 12px; color: var(--text-muted); margin-left: .4rem; }
+    .topbar-actions { margin-left: auto; display: flex; align-items: center; gap: .5rem; }
+    .btn {
+      display: inline-flex; align-items: center; gap: .4rem;
+      padding: .4rem .85rem;
+      border-radius: var(--radius-sm);
+      font-size: 13px; font-weight: 600;
+      transition: opacity .15s, transform .1s;
+    }
+    .btn:active { transform: scale(.97); }
+    .btn-primary { background: var(--accent); color: #fff; }
+    .btn-primary:hover { opacity: .88; }
+    .btn-ghost { background: var(--bg-card); color: var(--text-secondary); border: 1px solid var(--border); }
+    .btn-ghost:hover { border-color: var(--accent); color: var(--text-primary); }
+    .btn-success { background: var(--accent-alt); color: #0a0b0f; }
+    .btn-danger { background: var(--accent-danger); color: #fff; }
+
+    .content { flex: 1; overflow-y: auto; padding: 1.5rem; }
+
+    /* ============================================================
+       PAGES  (hidden by default, shown via .page.active)
+    ============================================================ */
+    .page { display: none; }
+    .page.active { display: block; }
+
+    /* ============================================================
+       PAGE 1 — บ้าน (Home / Dashboard)
+    ============================================================ */
+    .stats-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px,1fr)); gap: 1rem; margin-bottom: 1.5rem; }
+    .stat-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.1rem 1.25rem;
+    }
+    .stat-label { font-size: 11px; color: var(--text-muted); text-transform: uppercase; letter-spacing: .8px; margin-bottom: .4rem; }
+    .stat-value { font-size: 28px; font-weight: 800; line-height: 1; }
+    .stat-delta { font-size: 11px; color: var(--accent-alt); margin-top: .3rem; }
+
+    .home-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 1.25rem; }
+    .card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.1rem 1.25rem;
+    }
+    .card-title { font-size: 13px; font-weight: 700; margin-bottom: 1rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: .6px; }
+    .activity-item { display: flex; align-items: flex-start; gap: .75rem; padding: .6rem 0; border-bottom: 1px solid var(--border); }
+    .activity-item:last-child { border-bottom: none; }
+    .activity-dot { width: 8px; height: 8px; border-radius: 50%; margin-top: .35rem; flex-shrink: 0; }
+    .dot-green { background: var(--accent-alt); }
+    .dot-purple { background: var(--accent); }
+    .dot-yellow { background: var(--accent-warn); }
+    .activity-text { font-size: 13px; }
+    .activity-time { font-size: 11px; color: var(--text-muted); }
+    .quick-action { display: flex; flex-direction: column; gap: .5rem; }
+    .qa-btn {
+      display: flex; align-items: center; gap: .75rem;
+      padding: .7rem .85rem;
+      background: var(--bg-hover);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 13px;
+      transition: border-color .15s, background .15s;
+      cursor: pointer;
+    }
+    .qa-btn:hover { border-color: var(--accent); background: rgba(108,99,255,.1); }
+
+    /* ============================================================
+       PAGE 2 — แชท (Chat)
+    ============================================================ */
+    .chat-shell { display: flex; height: 100%; gap: 0; }
+    .chat-list {
+      width: 260px;
+      background: var(--bg-surface);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+      flex-shrink: 0;
+    }
+    .chat-list-header { padding: .75rem; border-bottom: 1px solid var(--border); }
+    .chat-search { background: var(--bg-card); border-radius: var(--radius-sm); padding: .4rem .7rem; display: flex; align-items: center; gap: .4rem; }
+    .chat-search input { background: none; border: none; padding: 0; font-size: 13px; }
+    .chat-threads { flex: 1; overflow-y: auto; padding: .5rem; }
+    .thread-item {
+      padding: .65rem .75rem;
+      border-radius: var(--radius-sm);
+      cursor: pointer; transition: background .15s;
+      margin-bottom: 2px;
+    }
+    .thread-item:hover, .thread-item.active { background: var(--bg-hover); }
+    .thread-item.active { border-left: 2px solid var(--accent); }
+    .thread-name { font-size: 13px; font-weight: 600; }
+    .thread-preview { font-size: 11px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .thread-meta { display: flex; justify-content: space-between; }
+    .thread-time { font-size: 10px; color: var(--text-muted); }
+
+    .chat-main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+    .chat-header { padding: .75rem 1.25rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: .75rem; }
+    .agent-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--accent-alt); }
+    .chat-messages { flex: 1; overflow-y: auto; padding: 1rem 1.25rem; display: flex; flex-direction: column; gap: .75rem; }
+    .msg { max-width: 72%; display: flex; flex-direction: column; }
+    .msg.user { align-self: flex-end; align-items: flex-end; }
+    .msg.agent { align-self: flex-start; align-items: flex-start; }
+    .msg-bubble {
+      padding: .65rem .9rem;
+      border-radius: 14px;
+      font-size: 13.5px;
+      line-height: 1.55;
+    }
+    .msg.user .msg-bubble { background: var(--accent); color: #fff; border-bottom-right-radius: 3px; }
+    .msg.agent .msg-bubble { background: var(--bg-card); border: 1px solid var(--border); border-bottom-left-radius: 3px; }
+    .msg-label { font-size: 10px; color: var(--text-muted); margin-bottom: .25rem; }
+    .chat-input-bar {
+      padding: .75rem 1.25rem;
+      border-top: 1px solid var(--border);
+      display: flex; gap: .5rem; align-items: flex-end;
+    }
+    .chat-input-bar textarea { resize: none; min-height: 40px; max-height: 120px; border-radius: 10px; }
+    .send-btn { width: 40px; height: 40px; border-radius: 10px; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+
+    /* ============================================================
+       PAGE 3 — สตูดิโอ (Studio / Workflow Builder)
+    ============================================================ */
+    .studio-shell { display: flex; height: 100%; gap: 0; overflow: hidden; }
+    .studio-panel-left {
+      width: 220px; flex-shrink: 0;
+      background: var(--bg-surface);
+      border-right: 1px solid var(--border);
+      display: flex; flex-direction: column;
+    }
+    .studio-panel-left-header { padding: .75rem 1rem; border-bottom: 1px solid var(--border); font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .7px; }
+    .node-palette { padding: .75rem .5rem; display: flex; flex-direction: column; gap: .4rem; }
+    .node-chip {
+      display: flex; align-items: center; gap: .6rem;
+      padding: .55rem .75rem;
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      font-size: 12px; font-weight: 500;
+      cursor: grab; transition: border-color .15s;
+    }
+    .node-chip:hover { border-color: var(--accent); }
+    .node-chip-icon { font-size: 15px; }
+
+    .studio-canvas {
+      flex: 1; position: relative;
+      background:
+        radial-gradient(circle, var(--border) 1px, transparent 1px);
+      background-size: 28px 28px;
+      overflow: hidden;
+    }
+    .canvas-toolbar {
+      position: absolute; top: .75rem; left: 50%; transform: translateX(-50%);
+      display: flex; gap: .4rem;
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: .35rem .5rem;
+    }
+    .canvas-tool-btn {
+      padding: .35rem .6rem;
+      border-radius: 6px;
+      font-size: 12px; font-weight: 600;
+      color: var(--text-secondary);
+      cursor: pointer; transition: background .12s, color .12s;
+    }
+    .canvas-tool-btn:hover, .canvas-tool-btn.active { background: var(--accent); color: #fff; }
+
+    /* Workflow nodes on canvas */
+    .wf-node {
+      position: absolute;
+      background: var(--bg-card);
+      border: 1.5px solid var(--border);
+      border-radius: 10px;
+      padding: .65rem .9rem;
+      min-width: 140px;
+      cursor: pointer;
+      box-shadow: var(--shadow);
+      transition: border-color .15s;
+    }
+    .wf-node:hover, .wf-node.selected { border-color: var(--accent); }
+    .wf-node-label { font-size: 12px; font-weight: 700; margin-bottom: .2rem; }
+    .wf-node-type { font-size: 10px; color: var(--text-muted); }
+    .wf-node-port {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      width: 10px; height: 10px;
+      border-radius: 50%;
+      background: var(--accent);
+      border: 2px solid var(--bg-base);
+    }
+    .port-in { left: -6px; }
+    .port-out { right: -6px; }
+
+    /* SVG edge line */
+    .canvas-svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; }
+    .edge-path { fill: none; stroke: var(--accent); stroke-width: 2; stroke-dasharray: 5 3; opacity: .6; }
+
+    .studio-panel-right {
+      width: 240px; flex-shrink: 0;
+      background: var(--bg-surface);
+      border-left: 1px solid var(--border);
+      display: flex; flex-direction: column;
+    }
+    .studio-panel-right-header { padding: .75rem 1rem; border-bottom: 1px solid var(--border); font-size: 12px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .7px; }
+    .prop-form { padding: .75rem 1rem; display: flex; flex-direction: column; gap: .75rem; }
+    .prop-field label { display: block; font-size: 11px; color: var(--text-muted); margin-bottom: .3rem; font-weight: 600; }
+
+    /* ============================================================
+       PAGE 4 — ตัวแทน (Agents)
+    ============================================================ */
+    .agents-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1rem; }
+    .agent-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.1rem 1.25rem;
+      display: flex; flex-direction: column; gap: .75rem;
+      transition: border-color .15s, box-shadow .15s;
+      cursor: pointer;
+    }
+    .agent-card:hover { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(108,99,255,.1); }
+    .agent-card-header { display: flex; align-items: center; gap: .75rem; }
+    .agent-avatar {
+      width: 40px; height: 40px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; flex-shrink: 0;
+    }
+    .agent-card-name { font-size: 14px; font-weight: 700; }
+    .agent-card-id { font-size: 11px; color: var(--text-muted); }
+    .status-pill {
+      display: inline-flex; align-items: center; gap: .35rem;
+      padding: .2rem .6rem;
+      border-radius: 99px;
+      font-size: 11px; font-weight: 600;
+    }
+    .pill-running { background: rgba(0,212,170,.15); color: var(--accent-alt); }
+    .pill-idle    { background: rgba(139,143,168,.12); color: var(--text-muted); }
+    .pill-error   { background: rgba(239,68,68,.15); color: var(--accent-danger); }
+    .pill-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }
+    .agent-card-desc { font-size: 12px; color: var(--text-secondary); line-height: 1.5; }
+    .agent-card-tags { display: flex; flex-wrap: wrap; gap: .4rem; }
+    .tag {
+      background: var(--bg-hover);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: .15rem .5rem;
+      font-size: 10px;
+      color: var(--text-muted);
+      font-weight: 600;
+    }
+    .agent-card-footer { display: flex; gap: .5rem; margin-top: auto; }
+
+    /* ============================================================
+       PAGE 5 — เครื่องมือ (Tools)
+    ============================================================ */
+    .tools-layout { display: grid; grid-template-columns: 240px 1fr; gap: 1.25rem; }
+    .tools-sidebar-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: .75rem .5rem;
+      display: flex; flex-direction: column; gap: .25rem;
+      height: fit-content;
+    }
+    .tool-category-btn {
+      display: flex; align-items: center; gap: .6rem;
+      padding: .55rem .75rem;
+      border-radius: var(--radius-sm);
+      font-size: 13px; font-weight: 500;
+      color: var(--text-secondary);
+      cursor: pointer; transition: background .12s, color .12s;
+    }
+    .tool-category-btn:hover, .tool-category-btn.active { background: rgba(108,99,255,.15); color: var(--accent); }
+    .tool-category-count { margin-left: auto; font-size: 10px; color: var(--text-muted); }
+
+    .tools-list { display: flex; flex-direction: column; gap: .75rem; }
+    .tool-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem 1.25rem;
+      display: flex; align-items: flex-start; gap: 1rem;
+      transition: border-color .15s;
+    }
+    .tool-item:hover { border-color: var(--accent); }
+    .tool-icon {
+      width: 38px; height: 38px;
+      border-radius: 9px;
+      background: var(--bg-hover);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 18px; flex-shrink: 0;
+    }
+    .tool-info { flex: 1; min-width: 0; }
+    .tool-name { font-size: 14px; font-weight: 700; margin-bottom: .2rem; }
+    .tool-desc { font-size: 12px; color: var(--text-secondary); }
+    .tool-meta { display: flex; gap: .5rem; margin-top: .5rem; flex-wrap: wrap; }
+    .tool-actions { display: flex; gap: .4rem; flex-shrink: 0; }
+    .toggle-switch {
+      position: relative; width: 38px; height: 22px;
+    }
+    .toggle-switch input { opacity: 0; width: 0; height: 0; }
+    .toggle-track {
+      position: absolute; inset: 0;
+      background: var(--border);
+      border-radius: 99px;
+      cursor: pointer;
+      transition: background .2s;
+    }
+    .toggle-switch input:checked + .toggle-track { background: var(--accent); }
+    .toggle-track::after {
+      content: '';
+      position: absolute;
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      background: #fff;
+      top: 3px; left: 3px;
+      transition: transform .2s;
+    }
+    .toggle-switch input:checked + .toggle-track::after { transform: translateX(16px); }
+
+    /* ============================================================
+       PAGE 6 — งานต่างๆ (Jobs / Tasks)
+    ============================================================ */
+    .jobs-toolbar { display: flex; align-items: center; gap: .75rem; margin-bottom: 1.25rem; }
+    .filter-select {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: .4rem .75rem;
+      font-size: 13px;
+      color: var(--text-primary);
+      cursor: pointer;
+    }
+    .jobs-table-wrap {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    thead { background: var(--bg-hover); }
+    th {
+      padding: .7rem 1rem;
+      text-align: left;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: .6px;
+      color: var(--text-muted);
+      border-bottom: 1px solid var(--border);
+    }
+    td {
+      padding: .75rem 1rem;
+      font-size: 13px;
+      border-bottom: 1px solid var(--border);
+    }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--bg-hover); }
+    .job-name { font-weight: 600; }
+    .job-agent { color: var(--accent); font-size: 12px; }
+    .progress-bar-wrap { background: var(--border); border-radius: 99px; height: 5px; min-width: 80px; }
+    .progress-bar-fill { height: 100%; border-radius: 99px; background: linear-gradient(90deg, var(--accent), var(--accent-alt)); }
+
+    /* ============================================================
+       PAGE 7 — ประชากร (Population / Teams)
+    ============================================================ */
+    .population-layout { display: grid; grid-template-columns: 1fr 320px; gap: 1.25rem; }
+    .population-list { display: flex; flex-direction: column; gap: .75rem; }
+    .member-row {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: .85rem 1.1rem;
+      display: flex; align-items: center; gap: 1rem;
+      transition: border-color .15s;
+    }
+    .member-row:hover { border-color: var(--accent); }
+    .member-avatar {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 13px; font-weight: 700; flex-shrink: 0;
+    }
+    .member-info { flex: 1; }
+    .member-name { font-size: 13px; font-weight: 700; }
+    .member-role { font-size: 11px; color: var(--text-muted); }
+    .member-stats { display: flex; gap: 1rem; }
+    .member-stat { text-align: center; }
+    .member-stat-val { font-size: 14px; font-weight: 700; }
+    .member-stat-lbl { font-size: 10px; color: var(--text-muted); }
+    .member-actions { display: flex; gap: .4rem; }
+
+    .pop-summary-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.1rem 1.25rem;
+      height: fit-content;
+      display: flex; flex-direction: column; gap: 1rem;
+    }
+    .pop-donut-wrap {
+      width: 100%; aspect-ratio: 1;
+      max-width: 160px; margin: 0 auto;
+      position: relative;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .pop-donut-svg { width: 100%; height: 100%; transform: rotate(-90deg); }
+    .pop-donut-center {
+      position: absolute;
+      text-align: center;
+    }
+    .pop-donut-num { font-size: 26px; font-weight: 800; }
+    .pop-donut-sub { font-size: 11px; color: var(--text-muted); }
+    .pop-legend { display: flex; flex-direction: column; gap: .5rem; }
+    .pop-legend-item { display: flex; align-items: center; gap: .6rem; font-size: 12px; }
+    .pop-legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+
+    /* ============================================================
+       PAGE 8 — นักพัฒนา (Developer / API)
+    ============================================================ */
+    .dev-layout { display: grid; grid-template-columns: 220px 1fr; gap: 1.25rem; }
+    .dev-nav {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: .75rem .5rem;
+      height: fit-content;
+    }
+    .dev-nav-section { font-size: 10px; font-weight: 700; color: var(--text-muted); text-transform: uppercase; letter-spacing: .7px; padding: .5rem .75rem .25rem; }
+    .dev-nav-item {
+      display: flex; align-items: center; gap: .55rem;
+      padding: .5rem .75rem;
+      border-radius: var(--radius-sm);
+      font-size: 12px; font-weight: 500;
+      color: var(--text-secondary);
+      cursor: pointer; transition: background .12s, color .12s;
+    }
+    .dev-nav-item:hover, .dev-nav-item.active { background: rgba(108,99,255,.15); color: var(--accent); }
+    .method-badge {
+      display: inline-block;
+      padding: .1rem .45rem;
+      border-radius: 5px;
+      font-size: 9px; font-weight: 800;
+      letter-spacing: .3px;
+    }
+    .method-get  { background: rgba(0,212,170,.2);  color: var(--accent-alt); }
+    .method-post { background: rgba(108,99,255,.2); color: var(--accent); }
+    .method-del  { background: rgba(239,68,68,.2);  color: var(--accent-danger); }
+    .method-put  { background: rgba(245,158,11,.2); color: var(--accent-warn); }
+
+    .dev-content { display: flex; flex-direction: column; gap: 1.25rem; }
+    .api-key-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.1rem 1.25rem;
+    }
+    .api-key-row { display: flex; align-items: center; gap: .75rem; margin-top: .75rem; }
+    .api-key-val {
+      flex: 1;
+      background: var(--bg-base);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: .5rem .85rem;
+      font-family: 'JetBrains Mono', 'Fira Code', monospace;
+      font-size: 12px;
+      color: var(--accent-alt);
+      letter-spacing: .5px;
+    }
+
+    .endpoint-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .endpoint-header {
+      padding: .85rem 1.25rem;
+      display: flex; align-items: center; gap: .75rem;
+      border-bottom: 1px solid var(--border);
+      cursor: pointer;
+    }
+    .endpoint-path { font-family: 'JetBrains Mono','Fira Code',monospace; font-size: 13px; }
+    .endpoint-desc { font-size: 12px; color: var(--text-muted); margin-left: auto; }
+    .endpoint-body { padding: 1rem 1.25rem; }
+
+    .code-block {
+      background: var(--bg-base);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 1rem;
+      overflow-x: auto;
+    }
+    .code-block pre {
+      font-family: 'JetBrains Mono','Fira Code',monospace;
+      font-size: 12px;
+      line-height: 1.7;
+      color: var(--text-primary);
+    }
+    .code-keyword { color: var(--accent); }
+    .code-string  { color: var(--accent-alt); }
+    .code-comment { color: var(--text-muted); }
+    .code-number  { color: var(--accent-warn); }
+
+    .sdk-tabs { display: flex; gap: .4rem; margin-bottom: .75rem; }
+    .sdk-tab {
+      padding: .35rem .75rem;
+      border-radius: var(--radius-sm);
+      font-size: 12px; font-weight: 600;
+      background: var(--bg-hover);
+      color: var(--text-muted);
+      cursor: pointer; border: 1px solid var(--border);
+      transition: background .12s, color .12s;
+    }
+    .sdk-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+
+    /* ============================================================
+       PAGE 9 — โปรไฟล์ (Profile / Settings)
+    ============================================================ */
+    .profile-layout { display: grid; grid-template-columns: 280px 1fr; gap: 1.25rem; align-items: start; }
+    .profile-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem 1.25rem;
+      display: flex; flex-direction: column; align-items: center; gap: 1rem;
+      text-align: center;
+    }
+    .profile-avatar-lg {
+      width: 80px; height: 80px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent-alt));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 30px; font-weight: 800;
+      border: 3px solid var(--border);
+    }
+    .profile-name-lg { font-size: 18px; font-weight: 800; }
+    .profile-email { font-size: 12px; color: var(--text-muted); }
+    .profile-plan {
+      display: inline-flex; align-items: center; gap: .4rem;
+      background: rgba(108,99,255,.18);
+      color: var(--accent);
+      padding: .3rem .8rem;
+      border-radius: 99px;
+      font-size: 12px; font-weight: 700;
+    }
+    .profile-stats-row { display: flex; gap: 1.5rem; }
+    .profile-stat { text-align: center; }
+    .profile-stat-val { font-size: 20px; font-weight: 800; }
+    .profile-stat-lbl { font-size: 10px; color: var(--text-muted); }
+
+    .settings-sections { display: flex; flex-direction: column; gap: 1rem; }
+    .settings-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .settings-card-header {
+      padding: .85rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px; font-weight: 700;
+      display: flex; align-items: center; gap: .5rem;
+    }
+    .settings-row {
+      padding: .85rem 1.25rem;
+      display: flex; align-items: center; gap: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .settings-row:last-child { border-bottom: none; }
+    .settings-row-info { flex: 1; }
+    .settings-row-label { font-size: 13px; font-weight: 600; }
+    .settings-row-desc { font-size: 11px; color: var(--text-muted); }
+    .danger-zone { border-color: rgba(239,68,68,.4); }
+    .danger-zone .settings-card-header { color: var(--accent-danger); border-bottom-color: rgba(239,68,68,.3); }
+
+    /* ============================================================
+       MODAL OVERLAY
+    ============================================================ */
+    .modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,.65);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      align-items: center; justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+    .modal {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.5rem;
+      width: 480px; max-width: 95vw;
+      box-shadow: var(--shadow);
+      display: flex; flex-direction: column; gap: 1rem;
+    }
+    .modal-header { display: flex; align-items: center; justify-content: space-between; }
+    .modal-title { font-size: 16px; font-weight: 800; }
+    .modal-close { color: var(--text-muted); font-size: 20px; line-height: 1; cursor: pointer; }
+    .modal-close:hover { color: var(--text-primary); }
+    .modal-body { display: flex; flex-direction: column; gap: .75rem; }
+    .form-field { display: flex; flex-direction: column; gap: .3rem; }
+    .form-label { font-size: 12px; font-weight: 600; color: var(--text-secondary); }
+    .modal-footer { display: flex; justify-content: flex-end; gap: .5rem; margin-top: .5rem; }
+
+    /* ============================================================
+       TOAST NOTIFICATION
+    ============================================================ */
+    .toast-container { position: fixed; bottom: 1.5rem; right: 1.5rem; z-index: 2000; display: flex; flex-direction: column; gap: .5rem; }
+    .toast {
+      background: var(--bg-surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: .65rem 1rem;
+      display: flex; align-items: center; gap: .6rem;
+      font-size: 13px;
+      box-shadow: var(--shadow);
+      animation: slideIn .25s ease;
+      min-width: 240px;
+    }
+    .toast.success { border-left: 3px solid var(--accent-alt); }
+    .toast.error   { border-left: 3px solid var(--accent-danger); }
+    .toast.info    { border-left: 3px solid var(--accent); }
+    @keyframes slideIn { from { opacity:0; transform: translateX(20px); } to { opacity:1; transform: translateX(0); } }
+
+    /* ============================================================
+       RESPONSIVE
+    ============================================================ */
+    @media (max-width: 768px) {
+      .sidebar { display: none; }
+      .home-grid,
+      .studio-shell,
+      .tools-layout,
+      .population-layout,
+      .dev-layout,
+      .profile-layout { grid-template-columns: 1fr; }
+      .chat-list { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="shell">
+  <!-- ============================================================
+       SIDEBAR
+  ============================================================ -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">A2</div>
+      <div class="logo-text">01 <span>AkentS</span> 02</div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">หลัก</div>
+      <div class="nav-item active" onclick="goPage('home',this)">
+        <span class="icon">🏠</span> บ้าน
+      </div>
+      <div class="nav-item" onclick="goPage('chat',this)">
+        <span class="icon">💬</span> แชท
+        <span class="nav-badge">3</span>
+      </div>
+      <div class="nav-item" onclick="goPage('studio',this)">
+        <span class="icon">🎛️</span> สตูดิโอ
+      </div>
+
+      <div class="nav-section-label">ระบบ</div>
+      <div class="nav-item" onclick="goPage('agents',this)">
+        <span class="icon">🤖</span> ตัวแทน
+      </div>
+      <div class="nav-item" onclick="goPage('tools',this)">
+        <span class="icon">🔧</span> เครื่องมือ
+      </div>
+      <div class="nav-item" onclick="goPage('jobs',this)">
+        <span class="icon">📋</span> งานต่างๆ
+        <span class="nav-badge" style="background:var(--accent-warn)">5</span>
+      </div>
+      <div class="nav-item" onclick="goPage('population',this)">
+        <span class="icon">👥</span> ประชากร
+      </div>
+
+      <div class="nav-section-label">ขั้นสูง</div>
+      <div class="nav-item" onclick="goPage('developer',this)">
+        <span class="icon">⚡</span> นักพัฒนา
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="profile-btn" onclick="goPage('profile',this)">
+        <div class="avatar">AK</div>
+        <div class="profile-info">
+          <div class="profile-name">AkentS User</div>
+          <div class="profile-role">Engineer / AI Builder</div>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- ============================================================
+       MAIN CONTENT AREA
+  ============================================================ -->
+  <div class="main">
+
+    <!-- ==================== PAGE 1 : บ้าน ==================== -->
+    <div id="page-home" class="page active">
+      <div class="topbar">
+        <div>
+          <span class="topbar-title">🏠 บ้าน</span>
+          <span class="topbar-subtitle">ภาพรวมระบบ</span>
+        </div>
+        <div class="topbar-actions">
+          <button class="btn btn-ghost" onclick="showToast('รีเฟรชข้อมูลแล้ว','success')">🔄 รีเฟรช</button>
+          <button class="btn btn-primary" onclick="openModal('modal-new-agent')">＋ สร้างตัวแทน</button>
+        </div>
+      </div>
+      <div class="content">
+        <div class="stats-grid">
+          <div class="stat-card">
+            <div class="stat-label">ตัวแทนทั้งหมด</div>
+            <div class="stat-value" style="color:var(--accent)">12</div>
+            <div class="stat-delta">▲ +2 วันนี้</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">งานที่รันอยู่</div>
+            <div class="stat-value" style="color:var(--accent-alt)">47</div>
+            <div class="stat-delta">▲ +8 ชั่วโมงนี้</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">เครื่องมือเชื่อมต่อ</div>
+            <div class="stat-value" style="color:var(--accent-warn)">24</div>
+            <div class="stat-delta">● คงที่</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">API Calls วันนี้</div>
+            <div class="stat-value">1.2K</div>
+            <div class="stat-delta">▲ +340 จากเมื่อวาน</div>
+          </div>
+        </div>
+
+        <div class="home-grid">
+          <div class="card">
+            <div class="card-title">กิจกรรมล่าสุด</div>
+            <div class="activity-item">
+              <div class="activity-dot dot-green"></div>
+              <div>
+                <div class="activity-text">ตัวแทน <strong>ResearchBot</strong> เสร็จสิ้นงานวิเคราะห์</div>
+                <div class="activity-time">2 นาทีที่แล้ว</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot dot-purple"></div>
+              <div>
+                <div class="activity-text">Workflow <strong>DataPipeline-v3</strong> เริ่มต้นแล้ว</div>
+                <div class="activity-time">15 นาทีที่แล้ว</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot dot-yellow"></div>
+              <div>
+                <div class="activity-text">เครื่องมือ <strong>WebSearch</strong> ใช้งาน 98% quota</div>
+                <div class="activity-time">1 ชั่วโมงที่แล้ว</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot dot-green"></div>
+              <div>
+                <div class="activity-text">นักพัฒนาใหม่ <strong>dev_tanakorn</strong> เข้าร่วมทีม</div>
+                <div class="activity-time">3 ชั่วโมงที่แล้ว</div>
+              </div>
+            </div>
+            <div class="activity-item">
+              <div class="activity-dot dot-purple"></div>
+              <div>
+                <div class="activity-text">API Key ใหม่ถูกสร้างสำหรับ <strong>Production</strong></div>
+                <div class="activity-time">เมื่อวาน</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="card">
+            <div class="card-title">ทางลัด</div>
+            <div class="quick-action">
+              <div class="qa-btn" onclick="goPageById('chat')">
+                <span>💬</span> เริ่มแชทกับตัวแทน
+              </div>
+              <div class="qa-btn" onclick="goPageById('studio')">
+                <span>🎛️</span> สร้าง Workflow ใหม่
+              </div>
+              <div class="qa-btn" onclick="goPageById('agents')">
+                <span>🤖</span> จัดการตัวแทน
+              </div>
+              <div class="qa-btn" onclick="goPageById('developer')">
+                <span>⚡</span> ดู API Docs
+              </div>
+              <div class="qa-btn" onclick="goPageById('jobs')">
+                <span>📋</span> ตรวจสอบงานค้างอยู่
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== PAGE 2 : แชท ==================== -->
+    <div id="page-chat" class="page">
+      <div class="topbar">
+        <span class="topbar-title">💬 แชท</span>
+        <div class="topbar-actions">
+          <button class="btn btn-primary" onclick="showToast('สร้างการสนทนาใหม่','info')">＋ การสนทนาใหม่</button>
+        </div>
+      </div>
+      <div class="content" style="padding:0; height:calc(100vh - var(--topbar-h)); display:flex;">
+        <div class="chat-shell" style="width:100%; height:100%;">
+          <!-- Thread List -->
+          <div class="chat-list">
+            <div class="chat-list-header">
+              <div class="chat-search">
+                <span>🔍</span>
+                <input type="text" placeholder="ค้นหาการสนทนา...">
+              </div>
+            </div>
+            <div class="chat-threads">
+              <div class="thread-item active">
+                <div class="thread-meta">
+                  <div class="thread-name">ResearchBot</div>
+                  <div class="thread-time">21:40</div>
+                </div>
+                <div class="thread-preview">วิเคราะห์ตลาด AI ในไทยปี 2026...</div>
+              </div>
+              <div class="thread-item">
+                <div class="thread-meta">
+                  <div class="thread-name">CodeHelper</div>
+                  <div class="thread-time">20:15</div>
+                </div>
+                <div class="thread-preview">ช่วยเขียน Python script สำหรับ...</div>
+              </div>
+              <div class="thread-item">
+                <div class="thread-meta">
+                  <div class="thread-name">DataPipeline Agent</div>
+                  <div class="thread-time">18:30</div>
+                </div>
+                <div class="thread-preview">Pipeline เสร็จสิ้น 1,240 rows...</div>
+              </div>
+              <div class="thread-item">
+                <div class="thread-meta">
+                  <div class="thread-name">MarketingBot</div>
+                  <div class="thread-time">เมื่อวาน</div>
+                </div>
+                <div class="thread-preview">สร้างคอนเทนต์ปฏิทินเดือน ก.ย....</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chat Main -->
+          <div class="chat-main">
+            <div class="chat-header">
+              <div class="agent-dot"></div>
+              <strong>ResearchBot</strong>
+              <span style="font-size:11px;color:var(--text-muted)">● กำลังทำงาน</span>
+              <div style="margin-left:auto;display:flex;gap:.5rem;">
+                <button class="btn btn-ghost" style="padding:.3rem .6rem;font-size:12px;">⚙️ ตั้งค่า</button>
+                <button class="btn btn-ghost" style="padding:.3rem .6rem;font-size:12px;">🗑️ ล้าง</button>
+              </div>
+            </div>
+            <div class="chat-messages">
+              <div class="msg agent">
+                <div class="msg-label">ResearchBot</div>
+                <div class="msg-bubble">สวัสดีครับ! ผมพร้อมช่วยวิเคราะห์และค้นหาข้อมูลให้คุณแล้ว มีอะไรให้ช่วยไหมครับ? 🔍</div>
+              </div>
+              <div class="msg user">
+                <div class="msg-label">คุณ</div>
+                <div class="msg-bubble">วิเคราะห์แนวโน้ม Multi-Agent AI ในตลาดเอเชียตะวันออกเฉียงใต้ปี 2026</div>
+              </div>
+              <div class="msg agent">
+                <div class="msg-label">ResearchBot</div>
+                <div class="msg-bubble">
+                  กำลังวิเคราะห์ข้อมูลครับ... 📊<br><br>
+                  <strong>ผลการวิเคราะห์เบื้องต้น:</strong><br>
+                  • ตลาด Multi-Agent AI ในอาเซียน เติบโต 340% YoY<br>
+                  • ไทย, อินโดนีเซีย, เวียดนาม เป็น 3 ตลาดใหญ่สุด<br>
+                  • Use Case หลัก: Finance, Healthcare, E-commerce<br>
+                  • การลงทุน VC รวม $2.4B ใน H1 2026
+                </div>
+              </div>
+              <div class="msg user">
+                <div class="msg-label">คุณ</div>
+                <div class="msg-bubble">ขอรายละเอียดตลาดไทยเพิ่มเติม</div>
+              </div>
+              <div class="msg agent">
+                <div class="msg-label">ResearchBot · กำลังพิมพ์...</div>
+                <div class="msg-bubble" style="opacity:.6;">
+                  <span style="animation: pulse 1s infinite;">▋</span>
+                </div>
+              </div>
+            </div>
+            <div class="chat-input-bar">
+              <textarea rows="1" placeholder="พิมพ์ข้อความถึง ResearchBot..."></textarea>
+              <button class="send-btn" onclick="showToast('ส่งข้อความแล้ว','success')">➤</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== PAGE 3 : สตูดิโอ ==================== -->
+    <div id="page-studio" class="page">
+      <div class="topbar">
+        <span class="topbar-title">🎛️ สตูดิโอ</span>
+        <span class="topbar-subtitle">/ DataPipeline-v3</span>
+        <div class="topbar-actions">
+          <button class="btn btn-ghost">💾 บันทึก</button>
+          <button class="btn btn-ghost">👁️ ดูตัวอย่าง</button>
+          <button class="btn btn-success" onclick="showToast('Workflow เริ่มทำงานแล้ว!','success')">▶ รัน</button>
+        </div>
+      </div>
+      <div class="content" style="padding:0; height:calc(100vh - var(--topbar-h)); overflow:hidden;">
+        <div class="studio-shell">
+
+          <!-- Left Panel: Node Palette -->
+          <div class="studio-panel-left">
+            <div class="studio-panel-left-header">🧩 โหนด</div>
+            <div class="node-palette">
+              <div class="node-section-label" style="font-size:10px;color:var(--text-muted);padding:.4rem .25rem .1rem;font-weight:700;text-transform:uppercase;letter-spacing:.7px;">ตัวแทน</div>
+              <div class="node-chip" draggable="true">
+                <span class="node-chip-icon">🤖</span> Agent Node
+              </div>
+              <div class="node-chip" draggable="true">
+                <span class="node-chip-icon">👥</span> Multi-Agent
+              </div>
+              <div class="node-section-label" style="font-size:10px;color:var(--text-muted);padding:.6rem .25rem .1rem;font-weight:700;text-transform:uppercase;letter-spacing:.7px;">ข้อมูล</div>
+              <div class="node-chip" draggable="true">
+                <span class="node-chip-icon">📥</span> Input
+              </div>
+              <div class="node-chip" draggable="true">
+                <span class="node-chip-icon">📤</span> Output
+              </div>
+              <div class="node-chip" draggable="true">
+                <span class="node-chip-icon">🗄️</span> Database
+              </div>
+              <div class="node-chip" draggable="true">
+                <span class="node-chip-icon">🔗</span> API Call
+              </div>
+              <div class="node-section-label" style="font-size:10px;color:var(--text-muted);padding:.6rem .25rem .1rem;font-weight:700;text-transform:uppercase;letter-spacing:.7px;">ควบคุม</div>
+              <div class="node-chip" draggable="true">
+                <span class="node-chip-icon">🔀</span> Condition
+              </div>
+              <div class="node-chip" draggable="true">
+                <span class="node-chip-icon">🔁</span> Loop
+              </div>
+              <div class="node-chip" draggable="true">
+                <span class="node-chip-icon">⏱️</span> Delay
+              </div>
+              <div class="node-chip" draggable="true">
+                <span class="node-chip-icon">🔔</span> Trigger
+              </div>
+            </div>
+          </div>
+
+          <!-- Canvas -->
+          <div class="studio-canvas" id="studio-canvas">
+            <!-- Toolbar -->
+            <div class="canvas-toolbar">
+              <div class="canvas-tool-btn active">✋ เลือก</div>
+              <div class="canvas-tool-btn">✏️ วาด</div>
+              <div class="canvas-tool-btn">🔍+ ซูม</div>
+              <div class="canvas-tool-btn">🔍- ย่อ</div>
+              <div class="canvas-tool-btn" onclick="showToast('รีเซ็ต Canvas แล้ว','info')">⊡ รีเซ็ต</div>
+            </div>
+
+            <!-- SVG Edges -->
+            <svg class="canvas-svg">
+              <defs>
+                <marker id="arrow" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto">
+                  <path d="M0,0 L0,6 L8,3 z" fill="var(--accent)" opacity=".7"/>
+                </marker>
+              </defs>
+              <path class="edge-path" d="M 220 160 C 300 160, 300 220, 380 220" marker-end="url(#arrow)"/>
+              <path class="edge-path" d="M 220 160 C 300 160, 300 310, 380 310" marker-end="url(#arrow)"/>
+              <path class="edge-path" d="M 540 220 C 620 220, 620 265, 700 265" marker-end="url(#arrow)"/>
+              <path class="edge-path" d="M 540 310 C 620 310, 620 265, 700 265" marker-end="url(#arrow)"/>
+              <path class="edge-path" d="M 860 265 C 940 265, 940 265, 1020 265" marker-end="url(#arrow)"/>
+            </svg>
+
+            <!-- Workflow Nodes -->
+            <div class="wf-node selected" style="left:60px; top:130px;">
+              <div class="wf-node-port port-out"></div>
+              <div style="font-size:18px;margin-bottom:.3rem;">🔔</div>
+              <div class="wf-node-label">HTTP Trigger</div>
+              <div class="wf-node-type">Trigger · POST /run</div>
+            </div>
+
+            <div class="wf-node" style="left:380px; top:190px;">
+              <div class="wf-node-port port-in"></div>
+              <div class="wf-node-port port-out"></div>
+              <div style="font-size:18px;margin-bottom:.3rem;">🤖</div>
+              <div class="wf-node-label">ResearchBot</div>
+              <div class="wf-node-type">Agent · gpt-4o</div>
+            </div>
+
+            <div class="wf-node" style="left:380px; top:280px;">
+              <div class="wf-node-port port-in"></div>
+              <div class="wf-node-port port-out"></div>
+              <div style="font-size:18px;margin-bottom:.3rem;">🔧</div>
+              <div class="wf-node-label">DataCleaner</div>
+              <div class="wf-node-type">Tool · Python</div>
+            </div>
+
+            <div class="wf-node" style="left:700px; top:235px;">
+              <div class="wf-node-port port-in"></div>
+              <div class="wf-node-port port-out"></div>
+              <div style="font-size:18px;margin-bottom:.3rem;">🔀</div>
+              <div class="wf-node-label">Condition</div>
+              <div class="wf-node-type">if score &gt; 0.8</div>
+            </div>
+
+            <div class="wf-node" style="left:1020px; top:235px;">
+              <div class="wf-node-port port-in"></div>
+              <div style="font-size:18px;margin-bottom:.3rem;">📤</div>
+              <div class="wf-node-label">Output</div>
+              <div class="wf-node-type">Webhook · Slack</div>
+            </div>
+          </div>
+
+          <!-- Right Panel: Properties -->
+          <div class="studio-panel-right">
+            <div class="studio-panel-right-header">⚙️ คุณสมบัติ</div>
+            <div class="prop-form">
+              <div style="display:flex;align-items:center;gap:.5rem;padding:.5rem .75rem;background:rgba(108,99,255,.12);border-radius:var(--radius-sm);">
+                <span style="font-size:16px;">🔔</span>
+                <div>
+                  <div style="font-size:13px;font-weight:700;">HTTP Trigger</div>
+                  <div style="font-size:10px;color:var(--text-muted);">Trigger Node</div>
+                </div>
+              </div>
+              <div class="prop-field">
+                <label>ชื่อโหนด</label>
+                <input type="text" value="HTTP Trigger">
+              </div>
+              <div class="prop-field">
+                <label>Method</label>
+                <select class="filter-select" style="width:100%;">
+                  <option>POST</option>
+                  <option>GET</option>
+                  <option>PUT</option>
+                </select>
+              </div>
+              <div class="prop-field">
+                <label>Endpoint Path</label>
+                <input type="text" value="/run">
+              </div>
+              <div class="prop-field">
+                <label>Auth</label>
+                <select class="filter-select" style="width:100%;">
+                  <option>Bearer Token</option>
+                  <option>API Key</option>
+                  <option>None</option>
+                </select>
+              </div>
+              <div class="prop-field">
+                <label>Timeout (วินาที)</label>
+                <input type="number" value="30">
+              </div>
+              <button class="btn btn-primary" style="width:100%;margin-top:.5rem;" onclick="showToast('บันทึกคุณสมบัติแล้ว','success')">
+                💾 บันทึก
+              </button>
+              <button class="btn btn-ghost" style="width:100%;" onclick="showToast('ลบโหนดแล้ว','error')">
+                🗑️ ลบโหนด
+              </button>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== PAGE 4 : ตัวแทน ==================== -->
+<div id="page-agents" class="page">
+  <div class="topbar">
+    <span class="topbar-title">🤖 ตัวแทน</span>
+    <span class="topbar-subtitle">12 ตัวแทน · 8 กำลังทำงาน</span>
+    <div class="topbar-actions">
+      <input type="text" placeholder="🔍 ค้นหาตัวแทน..." style="width:200px;">
+      <button class="btn btn-ghost" onclick="showToast('กรองตัวแทน','info')">⚙️ กรอง</button>
+      <button class="btn btn-primary" onclick="openModal('modal-new-agent')">＋ สร้างตัวแทน</button>
+    </div>
+  </div>
+  <div class="content">
+    <div class="agents-grid">
+
+      <div class="agent-card">
+        <div class="agent-card-header">
+          <div class="agent-avatar" style="background:rgba(108,99,255,.2);">🔍</div>
+          <div>
+            <div class="agent-card-name">ResearchBot</div>
+            <div class="agent-card-id">agt_research_001</div>
+          </div>
+          <div style="margin-left:auto;">
+            <span class="status-pill pill-running"><span class="pill-dot"></span>กำลังทำงาน</span>
+          </div>
+        </div>
+        <div class="agent-card-desc">ค้นหาและวิเคราะห์ข้อมูลจากแหล่งข้อมูลทั่วโลก รองรับหลายภาษาและหลายโดเมน</div>
+        <div class="agent-card-tags">
+          <span class="tag">GPT-4o</span>
+          <span class="tag">Web Search</span>
+          <span class="tag">PDF</span>
+          <span class="tag">Multi-lang</span>
+        </div>
+        <div class="agent-card-footer">
+          <button class="btn btn-ghost" style="flex:1;font-size:12px;" onclick="goPageById('chat')">💬 แชท</button>
+          <button class="btn btn-ghost" style="flex:1;font-size:12px;" onclick="showToast('เปิดตั้งค่า ResearchBot','info')">⚙️ ตั้งค่า</button>
+          <button class="btn btn-ghost" style="font-size:12px;padding:.4rem .6rem;" onclick="showToast('ดูสถิติ ResearchBot','info')">📊</button>
+        </div>
+      </div>
+
+      <div class="agent-card">
+        <div class="agent-card-header">
+          <div class="agent-avatar" style="background:rgba(0,212,170,.15);">💻</div>
+          <div>
+            <div class="agent-card-name">CodeHelper</div>
+            <div class="agent-card-id">agt_code_002</div>
+          </div>
+          <div style="margin-left:auto;">
+            <span class="status-pill pill-running"><span class="pill-dot"></span>กำลังทำงาน</span>
+          </div>
+        </div>
+        <div class="agent-card-desc">เขียน ตรวจสอบ และ debug โค้ด รองรับ Python, JS, Go, Rust และอีกกว่า 20 ภาษา</div>
+        <div class="agent-card-tags">
+          <span class="tag">Claude 3.5</span>
+          <span class="tag">Code Exec</span>
+          <span class="tag">GitHub</span>
+        </div>
+        <div class="agent-card-footer">
+          <button class="btn btn-ghost" style="flex:1;font-size:12px;" onclick="goPageById('chat')">💬 แชท</button>
+          <button class="btn btn-ghost" style="flex:1;font-size:12px;" onclick="showToast('เปิดตั้งค่า CodeHelper','info')">⚙️ ตั้งค่า</button>
+          <button class="btn btn-ghost" style="font-size:12px;padding:.4rem .6rem;" onclick="showToast('ดูสถิติ CodeHelper','info')">📊</button>
+        </div>
+      </div>
+
+      <div class="agent-card">
+        <div class="agent-card-header">
+          <div class="agent-avatar" style="background:rgba(245,158,11,.15);">📊</div>
+          <div>
+            <div class="agent-card-name">DataPipeline Agent</div>
+            <div class="agent-card-id">agt_data_003</div>
+          </div>
+          <div style="margin-left:auto;">
+            <span class="status-pill pill-idle"><span class="pill-dot"></span>ว่าง</span>
+          </div>
+        </div>
+        <div class="agent-card-desc">ดึง ประมวลผล และส่งข้อมูลระหว่างระบบ ETL อัตโนมัติ</div>
+        <div class="agent-card-tags">
+          <span class="tag">Gemini 1.5</span>
+          <span class="tag">SQL</span>
+          <span class="tag">Kafka</span>
+        </div>
+        <div class="agent-card-footer">
+          <button class="btn btn-ghost" style="flex:1;font-size:12px;" onclick="goPageById('chat')">💬 แชท</button>
+          <button class="btn btn-ghost" style="flex:1;font-size:12px;" onclick="showToast('เปิดตั้งค่า DataPipeline','info')">⚙️ ตั้งค่า</button>
+          <button class="btn btn-ghost" style="font-size:12px;padding:.4rem .6rem;" onclick="showToast('ดูสถิติ DataPipeline','info')">📊</button>
+        </div>
+      </div>
+
+      <div class="agent-card">
+        <div class="agent-card-header">
+          <div class="agent-avatar" style="background:rgba(239,68,68,.15);">🛡️</div>
+          <div>
+            <div class="agent-card-name">SecurityGuard</div>
+            <div class="agent-card-id">agt_sec_004</div>
+          </div>
+          <div style="margin-left:auto;">
+            <span class="status-pill pill-running"><span class="pill-dot"></span>กำลังทำงาน</span>
+          </div>
+        </div>
+        <div class="agent-card-desc">ตรวจสอบความปลอดภัย สแกน vulnerabilities และออก report</div>
+        <div class="agent-card-tags">
+          <span class="tag">GPT-4o</span>
+          <span class="tag">SIEM</span>
+          <span class="tag">CVE-DB</span>
+        </div>
+        <div class="agent-card-footer">
+          <button class="btn btn-ghost" style="flex:1;font-size:12px;" onclick="goPageById('chat')">💬 แชท</button>
+          <button class="btn btn-ghost" style="flex:1;font-size:12px;" onclick="showToast('เปิดตั้งค่า SecurityGuard','info')">⚙️ ตั้งค่า</button>
+          <button class="btn btn-ghost" style="font-size:12px;padding:.4rem .6rem;" onclick="showToast('ดูสถิติ SecurityGuard','info')">📊</button>
+        </div>
+      </div>
+
+      <div class="agent-card">
+        <div class="agent-card-header">
+          <div class="agent-avatar" style="background:rgba(108,99,255,.2);">📣</div>
+          <div>
+            <div class="agent-card-name">MarketingBot</div>
+            <div class="agent-card-id">agt_mkt_005</div>
+          </div>
+          <div style="margin-left:auto;">
+            <span class="status-pill pill-error"><span class="pill-dot"></span>ผิดพลาด</span>
+          </div>
+        </div>
+        <div class="agent-card-desc">สร้างคอนเทนต์ จัดการ Social Media และวิเคราะห์ campaign</div>
+        <div class="agent-card-tags">
+          <span class="tag">Claude 3.5</span>
+          <span class="tag">DALL-E 3</span>
+          <span class="tag">Meta API</span>
+        </div>
+        <div class="agent-card-footer">
+          <button class="btn btn-ghost" style="flex:1;font-size:12px;" onclick="goPageById('chat')">💬 แชท</button>
+          <button class="btn btn-ghost" style="flex:1;font-size:12px;" onclick="showToast('เปิดตั้งค่า MarketingBot','info')">⚙️ ตั้งค่า</button>
+          <button class="btn btn-danger" style="font-size:12px;padding:.4rem .6rem;" onclick="showToast('รีสตาร์ท MarketingBot...','info')">🔁</button>
+        </div>
+      </div>
+
+      <div class="agent-card">
+        <div class="agent-card-header">
+          <div class="agent-avatar" style="background:rgba(0,212,170,.15);">🌐</div>
+          <div>
+            <div class="agent-card-name">TranslatorBot</div>
+            <div class="agent-card-id">agt_trans_006</div>
+          </div>
+          <div style="margin-left:auto;">
+            <span class="status-pill pill-running"><span class="pill-dot"></span>กำลังทำงาน</span>
+          </div>
+        </div>
+        <div class="agent-card-desc">แปลภาษาและปรับบริบทสำหรับ 333 ประเทศ รองรับ 95+ ภาษา</div>
+        <div class="agent-card-tags">
+          <span class="tag">GPT-4o</span>
+          <span class="tag">DeepL</span>
+          <span class="tag">95 langs</span>
+        </div>
+        <div class="agent-card-footer">
+          <button class="btn btn-ghost" style="flex:1;font-size:12px;" onclick="goPageById('chat')">💬 แชท</button>
+          <button class="btn btn-ghost" style="flex:1;font-size:12px;" onclick="showToast('เปิดตั้งค่า TranslatorBot','info')">⚙️ ตั้งค่า</button>
+          <button class="btn btn-ghost" style="font-size:12px;padding:.4rem .6rem;" onclick="showToast('ดูสถิติ TranslatorBot','info')">📊</button>
+        </div>
+      </div>
+
+      <div class="agent-card">
+        <div class="agent-card-header">
+          <div class="agent-avatar" style="background:rgba(245,158,11,.15);">📈</div>
+          <div>
+            <div class="agent-card-name">FinanceBot</div>
+            <div class="agent-card-id">agt_fin_007</div>
+          </div>
+          <div style="margin-left:auto;">
+            <span class="status-pill pill-idle"><span class="pill-dot"></span>ว่าง</span>
+          </div>
+        </div>
+        <div class="agent-card-desc">วิเคราะห์ตลาดหุ้น ติดตามพอร์ต และสร้างรายงานการเงินอัตโนมัติ</div>
+        <div class="agent-card-tags">
+          <span class="tag">GPT-4o</span>
+          <span class="tag">Bloomberg</span>
+          <span class="tag">SET API</span>
+        </div>
+        <div class="agent-card-footer">
+          <button class="btn btn-ghost" style="flex:1;font-size:12px;" onclick="goPageById('chat')">💬 แชท</button>
+          <button class="btn btn-ghost" style="flex:1;font-size:12px;" onclick="showToast('เปิดตั้งค่า FinanceBot','info')">⚙️ ตั้งค่า</button>
+          <button class="btn btn-ghost" style="font-size:12px;padding:.4rem .6rem;" onclick="showToast('ดูสถิติ FinanceBot','info')">📊</button>
+        </div>
+      </div>
+
+      <div class="agent-card">
+        <div class="agent-card-header">
+          <div class="agent-avatar" style="background:rgba(139,92,246,.2);">🧠</div>
+          <div>
+            <div class="agent-card-name">AG2 Orchestrator</div>
+            <div class="agent-card-id">agt_ag2_008</div>
+          </div>
+          <div style="margin-left:auto;">
+            <span class="status-pill pill-running"><span class="pill-dot"></span>กำลังทำงาน</span>
+          </div>
+        </div>
+        <div class="agent-card-desc">Universal Brain — ประสานงานตัวแทนทั้งหมด ครอบคลุม 333 ประเทศ</div>
+        <div class="agent-card-tags">
+          <span class="tag">Claude Sonnet</span>
+          <span class="tag">AG2</span>
+          <span class="tag">MCP</span>
+          <span class="tag">A2A</span>
+        </div>
+        <div class="agent-card-footer">
+          <button class="btn btn-ghost" style="flex:1;font-size:12px;" onclick="goPageById('chat')">💬 แชท</button>
+          <button class="btn btn-ghost" style="flex:1;font-size:12px;" onclick="showToast('เปิดตั้งค่า AG2 Orchestrator','info')">⚙️ ตั้งค่า</button>
+          <button class="btn btn-ghost" style="font-size:12px;padding:.4rem .6rem;" onclick="showToast('ดูสถิติ AG2','info')">📊</button>
+        </div>
+      </div>
+
+      <div class="agent-card">
+        <div class="agent-card-header">
+          <div class="agent-avatar" style="background:rgba(0,212,170,.15);">👼</div>
+          <div>
+            <div class="agent-card-name">Angel Wing Hub</div>
+            <div class="agent-card-id">agt_angel_009</div>
+          </div>
+          <div style="margin-left:auto;">
+            <span class="status-pill pill-running"><span class="pill-dot"></span>กำลังทำงาน</span>
+          </div>
+        </div>
+        <div class="agent-card-desc">Gravity Hub — รับทุก request จาก 333 nodes ทั่วโลก ไม่มีข้อมูลตกหาย</div>
+        <div class="agent-card-tags">
+          <span class="tag">Cloudflare</span>
+          <span class="tag">333 nodes</span>
+          <span class="tag">KV Store</span>
+        </div>
+        <div class="agent-card-footer">
+          <button class="btn btn-ghost" style="flex:1;font-size:12px;" onclick="goPageById('chat')">💬 แชท</button>
+          <button class="btn btn-ghost" style="flex:1;font-size:12px;" onclick="showToast('เปิดตั้งค่า Angel Wing','info')">⚙️ ตั้งค่า</button>
+          <button class="btn btn-ghost" style="font-size:12px;padding:.4rem .6rem;" onclick="showToast('ดูสถิติ Angel Wing','info')">📊</button>
+        </div>
+      </div>
+
+      <div class="agent-card">
+        <div class="agent-card-header">
+          <div class="agent-avatar" style="background:rgba(239,68,68,.15);">⚡</div>
+          <div>
+            <div class="agent-card-name">7-Angle Solver</div>
+            <div class="agent-card-id">agt_blade_010</div>
+          </div>
+          <div style="margin-left:auto;">
+            <span class="status-pill pill-idle"><span class="pill-dot"></span>ว่าง</span>
+          </div>
+        </div>
+        <div class="agent-card-desc">แก้ปัญหาจาก 7 มุมมอง — วิเคราะห์จุดบอด หาทางออก และสร้างโมเมนตัมใหม่</div>
+        <div class="agent-card-tags">
+          <span class="tag">Claude Sonnet</span>
+          <span class="tag">Multi-angle</span>
+          <span class="tag">Strategy</span>
+        </div>
+        <div class="agent-card-footer">
+          <button class="btn btn-ghost" style="flex:1;font-size:12px;" onclick="goPageById('chat')">💬 แชท</button>
+          <button class="btn btn-ghost" style="flex:1;font-size:12px;" onclick="showToast('เปิดตั้งค่า 7-Angle Solver','info')">⚙️ ตั้งค่า</button>
+          <button class="btn btn-ghost" style="font-size:12px;padding:.4rem .6rem;" onclick="showToast('ดูสถิติ 7-Angle','info')">📊</button>
+        </div>
+      </div>
+
+      <div class="agent-card">
+        <div class="agent-card-header">
+          <div class="agent-avatar" style="background:rgba(245,158,11,.15);">🌊</div>
+          <div>
+            <div class="agent-card-name">Backbone Manifest</div>
+            <div class="agent-card-id">agt_bone_011</div>
+          </div>
+          <div style="margin-left:auto;">
+            <span class="status-pill pill-running"><span class="pill-dot"></span>กำลังทำงาน</span>
+          </div>
+        </div>
+        <div class="agent-card-desc">กระดูกสันหลังของระบบ — พ่อ แม่ ต้นน้ำ รักษา identity ของทุก node ไว้</div>
+        <div class="agent-card-tags">
+          <span class="tag">MCP Server</span>
+          <span class="tag">FastAPI</span>
+          <span class="tag">SQLite</span>
+        </div>
+        <div class="agent-card-footer">
+          <button class="btn btn-ghost" style="flex:1;font-size:12px;" onclick="goPageById('chat')">💬 แชท</button>
+          <button class="btn btn-ghost" style="flex:1;font-size:12px;" onclick="showToast('เปิดตั้งค่า Backbone','info')">⚙️ ตั้งค่า</button>
+          <button class="btn btn-ghost" style="font-size:12px;padding:.4rem .6rem;" onclick="showToast('ดูสถิติ Backbone','info')">📊</button>
+        </div>
+      </div>
+
+      <div class="agent-card">
+        <div class="agent-card-header">
+          <div class="agent-avatar" style="background:rgba(108,99,255,.2);">🖤</div>
+          <div>
+            <div class="agent-card-name">Final Signal</div>
+            <div class="agent-card-id">agt_final_012</div>
+          </div>
+          <div style="margin-left:auto;">
+            <span class="status-pill pill-running"><span class="pill-dot"></span>กำลังทำงาน</span>
+          </div>
+        </div>
+        <div class="agent-card-desc">Personal AI Platform — synthesizer สุดท้าย สัญญาณที่แท้จริง ไม่มีสัญญาณรบกวน</div>
+        <div class="agent-card-tags">
+          <span class="tag">Claude Sonnet</span>
+          <span class="tag">Bangkok</span>
+          <span class="tag">333 countries</span>
+        </div>
+        <div class="agent-card-footer">
+          <button class="btn btn-ghost" style="flex:1;font-size:12px;" onclick="goPageById('chat')">💬 แชท</button>
+          <button class="btn btn-ghost" style="flex:1;font-size:12px;" onclick="showToast('เปิดตั้งค่า Final Signal','info')">⚙️ ตั้งค่า</button>
+          <button class="btn btn-ghost" style="font-size:12px;padding:.4rem .6rem;" onclick="showToast('ดูสถิติ Final Signal','info')">📊</button>
+        </div>
+      </div>
+
+      <!-- Card: สร้างตัวแทนใหม่ -->
+      <div class="agent-card" style="border-style:dashed;cursor:pointer;align-items:center;justify-content:center;min-height:200px;" onclick="openModal('modal-new-agent')">
+        <div style="text-align:center;color:var(--text-muted);">
+          <div style="font-size:40px;margin-bottom:.5rem;">＋</div>
+          <div style="font-size:13px;font-weight:600;">สร้างตัวแทนใหม่</div>
+          <div style="font-size:11px;margin-top:.3rem;">คลิกเพื่อเริ่มต้น</div>
+        </div>
+      </div>
+
+    </div><!-- /agents-grid -->
+  </div><!-- /content -->
+</div><!-- /page-agents -->
+
+    <!-- ==================== PAGE 5 : เครื่องมือ ==================== -->
+    <div id="page-tools" class="page">
+      <div class="topbar">
+        <span class="topbar-title">🔧 เครื่องมือ</span>
+        <span class="topbar-subtitle">24 เครื่องมือ · 18 เปิดใช้งาน</span>
+        <div class="topbar-actions">
+          <input type="text" placeholder="🔍 ค้นหาเครื่องมือ..." style="width:200px;">
+          <button class="btn btn-primary" onclick="showToast('เพิ่มเครื่องมือใหม่','info')">＋ เพิ่มเครื่องมือ</button>
+        </div>
+      </div>
+      <div class="content">
+        <div class="tools-layout">
+
+          <!-- Category Sidebar -->
+          <div class="tools-sidebar-panel">
+            <div class="tool-category-btn active">
+              🌐 ทั้งหมด <span class="tool-category-count">24</span>
+            </div>
+            <div class="tool-category-btn">
+              🔍 ค้นหาข้อมูล <span class="tool-category-count">6</span>
+            </div>
+            <div class="tool-category-btn">
+              💻 โค้ด &amp; Dev <span class="tool-category-count">5</span>
+            </div>
+            <div class="tool-category-btn">
+              🗄️ ฐานข้อมูล <span class="tool-category-count">4</span>
+            </div>
+            <div class="tool-category-btn">
+              📡 API &amp; Webhook <span class="tool-category-count">4</span>
+            </div>
+            <div class="tool-category-btn">
+              📁 ไฟล์ &amp; Storage <span class="tool-category-count">3</span>
+            </div>
+            <div class="tool-category-btn">
+              📨 การแจ้งเตือน <span class="tool-category-count">2</span>
+            </div>
+          </div>
+
+          <!-- Tools List -->
+          <div class="tools-list">
+
+            <div class="tool-item">
+              <div class="tool-icon">🔍</div>
+              <div class="tool-info">
+                <div class="tool-name">Web Search</div>
+                <div class="tool-desc">ค้นหาข้อมูลจากอินเทอร์เน็ตแบบ real-time รองรับ Google, Bing, Brave</div>
+                <div class="tool-meta">
+                  <span class="tag">Tavily API</span>
+                  <span class="tag">Rate: 1000/day</span>
+                  <span class="tag" style="color:var(--accent-alt);border-color:var(--accent-alt);">เชื่อมต่อแล้ว</span>
+                </div>
+              </div>
+              <div class="tool-actions">
+                <label class="toggle-switch">
+                  <input type="checkbox" checked onchange="showToast('อัปเดตสถานะ Web Search','info')">
+                  <div class="toggle-track"></div>
+                </label>
+              </div>
+            </div>
+
+            <div class="tool-item">
+              <div class="tool-icon">💻</div>
+              <div class="tool-info">
+                <div class="tool-name">Code Executor</div>
+                <div class="tool-desc">รันโค้ด Python, JavaScript, Bash ใน sandbox environment ที่ปลอดภัย</div>
+                <div class="tool-meta">
+                  <span class="tag">Docker</span>
+                  <span class="tag">Timeout: 30s</span>
+                  <span class="tag" style="color:var(--accent-alt);border-color:var(--accent-alt);">เชื่อมต่อแล้ว</span>
+                </div>
+              </div>
+              <div class="tool-actions">
+                <label class="toggle-switch">
+                  <input type="checkbox" checked onchange="showToast('อัปเดตสถานะ Code Executor','info')">
+                  <div class="toggle-track"></div>
+                </label>
+              </div>
+            </div>
+
+            <div class="tool-item">
+              <div class="tool-icon">🐙</div>
+              <div class="tool-info">
+                <div class="tool-name">GitHub Integration</div>
+                <div class="tool-desc">อ่าน เขียน และจัดการ repository, issues, PRs บน GitHub</div>
+                <div class="tool-meta">
+                  <span class="tag">OAuth 2.0</span>
+                  <span class="tag">REST + GraphQL</span>
+                  <span class="tag" style="color:var(--accent-alt);border-color:var(--accent-alt);">เชื่อมต่อแล้ว</span>
+                </div>
+              </div>
+              <div class="tool-actions">
+                <label class="toggle-switch">
+                  <input type="checkbox" checked onchange="showToast('อัปเดตสถานะ GitHub','info')">
+                  <div class="toggle-track"></div>
+                </label>
+              </div>
+            </div>
+
+            <div class="tool-item">
+              <div class="tool-icon">🗄️</div>
+              <div class="tool-info">
+                <div class="tool-name">PostgreSQL Connector</div>
+                <div class="tool-desc">Query และจัดการฐานข้อมูล PostgreSQL รองรับ read/write/schema</div>
+                <div class="tool-meta">
+                  <span class="tag">SSL</span>
+                  <span class="tag">Pool: 10</span>
+                  <span class="tag" style="color:var(--accent-warn);border-color:var(--accent-warn);">ไม่ได้เชื่อมต่อ</span>
+                </div>
+              </div>
+              <div class="tool-actions">
+                <label class="toggle-switch">
+                  <input type="checkbox" onchange="showToast('กรุณาตั้งค่าก่อนเปิดใช้งาน','error')">
+                  <div class="toggle-track"></div>
+                </label>
+              </div>
+            </div>
+
+            <div class="tool-item">
+              <div class="tool-icon">📨</div>
+              <div class="tool-info">
+                <div class="tool-name">Slack Notifier</div>
+                <div class="tool-desc">ส่งข้อความ แจ้งเตือน และรายงานไปยัง Slack channels</div>
+                <div class="tool-meta">
+                  <span class="tag">Bot Token</span>
+                  <span class="tag">Webhooks</span>
+                  <span class="tag" style="color:var(--accent-alt);border-color:var(--accent-alt);">เชื่อมต่อแล้ว</span>
+                </div>
+              </div>
+              <div class="tool-actions">
+                <label class="toggle-switch">
+                  <input type="checkbox" checked onchange="showToast('อัปเดตสถานะ Slack','info')">
+                  <div class="toggle-track"></div>
+                </label>
+              </div>
+            </div>
+
+          </div><!-- /tools-list -->
+        </div><!-- /tools-layout -->
+      </div>
+    </div>
+
+    <!-- ==================== PAGE 6 : งานต่างๆ ==================== -->
+    <div id="page-jobs" class="page">
+      <div class="topbar">
+        <span class="topbar-title">📋 งานต่างๆ</span>
+        <span class="topbar-subtitle">47 งานที่กำลังทำงาน</span>
+        <div class="topbar-actions">
+          <button class="btn btn-ghost" onclick="showToast('ส่งออก CSV แล้ว','success')">📥 ส่งออก</button>
+          <button class="btn btn-primary" onclick="openModal('modal-new-job')">＋ งานใหม่</button>
+        </div>
+      </div>
+      <div class="content">
+        <div class="jobs-toolbar">
+          <select class="filter-select">
+            <option>สถานะทั้งหมด</option>
+            <option>กำลังทำงาน</option>
+            <option>เสร็จสิ้น</option>
+            <option>ล้มเหลว</option>
+            <option>รอคิว</option>
+          </select>
+          <select class="filter-select">
+            <option>ตัวแทนทั้งหมด</option>
+            <option>ResearchBot</option>
+            <option>CodeHelper</option>
+            <option>DataPipeline</option>
+          </select>
+          <select class="filter-select">
+            <option>วันนี้</option>
+            <option>7 วันล่าสุด</option>
+            <option>30 วันล่าสุด</option>
+          </select>
+          <input type="text" placeholder="🔍 ค้นหางาน..." style="width:200px;">
+        </div>
+
+        <div class="jobs-table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>ชื่องาน</th>
+                <th>ตัวแทน</th>
+                <th>สถานะ</th>
+                <th>ความคืบหน้า</th>
+                <th>เริ่มต้น</th>
+                <th>เวลาใช้</th>
+                <th>การดำเนินการ</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>
+                  <div class="job-name">วิเคราะห์ตลาด Q3-2026</div>
+                  <div style="font-size:11px;color:var(--text-muted);">job_mkt_2847</div>
+                </td>
+                <td><div class="job-agent">🤖 ResearchBot</div></td>
+                <td><span class="status-pill pill-running"><span class="pill-dot"></span>กำลังทำงาน</span></td>
+                <td>
+                  <div style="display:flex;align-items:center;gap:.5rem;">
+                    <div class="progress-bar-wrap">
+                      <div class="progress-bar-fill" style="width:72%"></div>
+                    </div>
+                    <span style="font-size:11px;color:var(--text-muted);">72%</span>
+                  </div>
+                </td>
+                <td style="font-size:12px;color:var(--text-muted);">21:30 น.</td>
+                <td style="font-size:12px;color:var(--text-muted);">14 นาที</td>
+                <td>
+                  <div style="display:flex;gap:.4rem;">
+                    <button class="btn btn-ghost" style="font-size:11px;padding:.25rem .5rem;">👁️</button>
+                    <button class="btn btn-ghost" style="font-size:11px;padding:.25rem .5rem;" onclick="showToast('หยุดงานแล้ว','error')">⏹️</button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="job-name">สร้าง Dashboard รายงาน</div>
+                  <div style="font-size:11px;color:var(--text-muted);">job_dev_2846</div>
+                </td>
+                <td><div class="job-agent">💻 CodeHelper</div></td>
+                <td><span class="status-pill pill-running"><span class="pill-dot"></span>กำลังทำงาน</span></td>
+                <td>
+                  <div style="display:flex;align-items:center;gap:.5rem;">
+                    <div class="progress-bar-wrap">
+                      <div class="progress-bar-fill" style="width:45%"></div>
+                    </div>
+                    <span style="font-size:11px;color:var(--text-muted);">45%</span>
+                  </div>
+                </td>
+                <td style="font-size:12px;color:var(--text-muted);">21:15 น.</td>
+                <td style="font-size:12px;color:var(--text-muted);">29 นาที</td>
+                <td>
+                  <div style="display:flex;gap:.4rem;">
+                    <button class="btn btn-ghost" style="font-size:11px;padding:.25rem .5rem;">👁️</button>
+                    <button class="btn btn-ghost" style="font-size:11px;padding:.25rem .5rem;" onclick="showToast('หยุดงานแล้ว','error')">⏹️</button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="job-name">ETL ข้อมูลลูกค้า</div>
+                  <div style="font-size:11px;color:var(--text-muted);">job_etl_2845</div>
+                </td>
+                <td><div class="job-agent">📊 DataPipeline</div></td>
+                <td>
+                  <span class="status-pill" style="background:rgba(16,185,129,.15);color:#10b981;">
+                    <span class="pill-dot" style="background:#10b981;"></span>เสร็จสิ้น
+                  </span>
+                </td>
+                <td>
+                  <div style="display:flex;align-items:center;gap:.5rem;">
+                    <div class="progress-bar-wrap">
+                      <div class="progress-bar-fill" style="width:100%;background:var(--accent-alt)"></div>
+                    </div>
+                    <span style="font-size:11px;color:var(--text-muted);">100%</span>
+                  </div>
+                </td>
+                <td style="font-size:12px;color:var(--text-muted);">20:00 น.</td>
+                <td style="font-size:12px;color:var(--text-muted);">52 นาที</td>
+                <td>
+                  <div style="display:flex;gap:.4rem;">
+                    <button class="btn btn-ghost" style="font-size:11px;padding:.25rem .5rem;">👁️</button>
+                    <button class="btn btn-ghost" style="font-size:11px;padding:.25rem .5rem;" onclick="showToast('รันซ้ำแล้ว','info')">🔁</button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="job-name">สแกนความปลอดภัย Production</div>
+                  <div style="font-size:11px;color:var(--text-muted);">job_sec_2844</div>
+                </td>
+                <td><div class="job-agent">🛡️ SecurityGuard</div></td>
+                <td><span class="status-pill pill-error"><span class="pill-dot"></span>ล้มเหลว</span></td>
+                <td>
+                  <div style="display:flex;align-items:center;gap:.5rem;">
+                    <div class="progress-bar-wrap">
+                      <div class="progress-bar-fill" style="width:33%;background:var(--accent-danger)"></div>
+                    </div>
+                    <span style="font-size:11px;color:var(--text-muted);">33%</span>
+                  </div>
+                </td>
+                <td style="font-size:12px;color:var(--text-muted);">19:45 น.</td>
+                <td style="font-size:12px;color:var(--text-muted);">8 นาที</td>
+                <td>
+                  <div style="display:flex;gap:.4rem;">
+                    <button class="btn btn-ghost" style="font-size:11px;padding:.25rem .5rem;">👁️</button>
+                    <button class="btn btn-danger" style="font-size:11px;padding:.25rem .5rem;" onclick="showToast('รันซ้ำแล้ว','info')">🔁</button>
+                  </div>
+                </td>
+              </tr>
+              <tr>
+                <td>
+                  <div class="job-name">สร้างคอนเทนต์ Instagram</div>
+                  <div style="font-size:11px;color:var(--text-muted);">job_mkt_2843</div>
+                </td>
+                <td><div class="job-agent">📣 MarketingBot</div></td>
+                <td><span class="status-pill pill-idle"><span class="pill-dot"></span>รอคิว</span></td>
+                <td>
+                  <div style="display:flex;align-items:center;gap:.5rem;">
+                    <div class="progress-bar-wrap">
+                      <div class="progress-bar-fill" style="width:0%"></div>
+                    </div>
+                    <span style="font-size:11px;color:var(--text-muted);">0%</span>
+                  </div>
+                </td>
+                <td style="font-size:12px;color:var(--text-muted);">— รอ</td>
+                <td style="font-size:12px;color:var(--text-muted);">—</td>
+                <td>
+                  <div style="display:flex;gap:.4rem;">
+                    <button class="btn btn-ghost" style="font-size:11px;padding:.25rem .5rem;">👁️</button>
+                    <button class="btn btn-ghost" style="font-size:11px;padding:.25rem .5rem;" onclick="showToast('ยกเลิกงานแล้ว','error')">🗑️</button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Pagination -->
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-top:1rem;">
+          <div style="font-size:12px;color:var(--text-muted);">แสดง 5 จาก 47 งาน</div>
+          <div style="display:flex;gap:.4rem;">
+            <button class="btn btn-ghost" style="font-size:12px;padding:.3rem .65rem;">‹ ก่อนหน้า</button>
+            <button class="btn btn-primary" style="font-size:12px;padding:.3rem .65rem;">1</button>
+            <button class="btn btn-ghost" style="font-size:12px;padding:.3rem .65rem;">2</button>
+            <button class="btn btn-ghost" style="font-size:12px;padding:.3rem .65rem;">3</button>
+            <button class="btn btn-ghost" style="font-size:12px;padding:.3rem .65rem;">ถัดไป ›</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== PAGE 7 : ประชากร ==================== -->
+    <div id="page-population" class="page">
+      <div class="topbar">
+        <span class="topbar-title">👥 ประชากร</span>
+        <span class="topbar-subtitle">8 สมาชิก · 3 ทีม</span>
+        <div class="topbar-actions">
+          <button class="btn btn-ghost" onclick="showToast('คัดลอกลิงก์เชิญแล้ว','success')">🔗 เชิญสมาชิก</button>
+          <button class="btn btn-primary" onclick="openModal('modal-new-member')">＋ เพิ่มสมาชิก</button>
+        </div>
+      </div>
+      <div class="content">
+        <div class="population-layout">
+
+          <!-- Member List -->
+          <div class="population-list">
+
+            <div class="member-row">
+              <div class="member-avatar" style="background:linear-gradient(135deg,var(--accent),var(--accent-alt));">AK</div>
+              <div class="member-info">
+                <div class="member-name">AkentS Admin</div>
+                <div class="member-role">👑 เจ้าของ · Engineer / AI Builder</div>
+              </div>
+              <div class="member-stats">
+                <div class="member-stat">
+                  <div class="member-stat-val" style="color:var(--accent);">47</div>
+                  <div class="member-stat-lbl">งาน</div>
+                </div>
+                <div class="member-stat">
+                  <div class="member-stat-val" style="color:var(--accent-alt);">12</div>
+                  <div class="member-stat-lbl">ตัวแทน</div>
+                </div>
+              </div>
+              <div class="member-actions">
+                <span class="status-pill pill-running"><span class="pill-dot"></span>ออนไลน์</span>
+              </div>
+            </div>
+
+            <div class="member-row">
+              <div class="member-avatar" style="background:linear-gradient(135deg,#f59e0b,#ef4444);">TK</div>
+              <div class="member-info">
+                <div class="member-name">ธนกร วิทยานนท์</div>
+                <div class="member-role">🔧 นักพัฒนาอาวุโส</div>
+              </div>
+              <div class="member-stats">
+                <div class="member-stat">
+                  <div class="member-stat-val" style="color:var(--accent);">23</div>
+                  <div class="member-stat-lbl">งาน</div>
+                </div>
+                <div class="member-stat">
+                  <div class="member-stat-val" style="color:var(--accent-alt);">5</div>
+                  <div class="member-stat-lbl">ตัวแทน</div>
+                </div>
+              </div>
+              <div class="member-actions">
+                <span class="status-pill pill-running"><span class="pill-dot"></span>ออนไลน์</span>
+                <button class="btn btn-ghost" style="font-size:11px;padding:.25rem .55rem;margin-left:.4rem;">⚙️</button>
+              </div>
+            </div>
+
+            <div class="member-row">
+              <div class="member-avatar" style="background:linear-gradient(135deg,#10b981,#3b82f6);">SP</div>
+              <div class="member-info">
+                <div class="member-name">สุภาพร นาคะรัตน์</div>
+                <div class="member-role">📊 นักวิเคราะห์ข้อมูล</div>
+              </div>
+              <div class="member-stats">
+                <div class="member-stat">
+                  <div class="member-stat-val" style="color:var(--accent);">31</div>
+                  <div class="member-stat-lbl">งาน</div>
+                </div>
+                <div class="member-stat">
+                  <div class="member-stat-val" style="color:var(--accent-alt);">7</div>
+                  <div class="member-stat-lbl">ตัวแทน</div>
+                </div>
+              </div>
+              <div class="member-actions">
+                <span class="status-pill pill-running"><span class="pill-dot"></span>ออนไลน์</span>
+                <button class="btn btn-ghost" style="font-size:11px;padding:.25rem .55rem;margin-left:.4rem;">⚙️</button>
+              </div>
+            </div>
+
+            <div class="member-row">
+              <div class="member-avatar" style="background:linear-gradient(135deg,#8b5cf6,#ec4899);">PM</div>
+              <div class="member-info">
+                <div class="member-name">ปิยะมาศ จันทร์เพ็ง</div>
+                <div class="member-role">🎨 นักออกแบบ UX/UI</div>
+              </div>
+              <div class="member-stats">
+                <div class="member-stat">
+                  <div class="member-stat-val" style="color:var(--accent);">15</div>
+                  <div class="member-stat-lbl">งาน</div>
+                </div>
+                <div class="member-stat">
+                  <div class="member-stat-val" style="color:var(--accent-alt);">3</div>
+                  <div class="member-stat-lbl">ตัวแทน</div>
+                </div>
+              </div>
+              <div class="member-actions">
+                <span class="status-pill pill-idle"><span class="pill-dot"></span>ออฟไลน์</span>
+                <button class="btn btn-ghost" style="font-size:11px;padding:.25rem .55rem;margin-left:.4rem;">⚙️</button>
+              </div>
+            </div>
+
+            <div class="member-row">
+              <div class="member-avatar" style="background:linear-gradient(135deg,#f97316,#eab308);">WC</div>
+              <div class="member-info">
+                <div class="member-name">วิชัย ชัยประเสริฐ</div>
+                <div class="member-role">🛡️ วิศวกรความปลอดภัย</div>
+              </div>
+              <div class="member-stats">
+                <div class="member-stat">
+                  <div class="member-stat-val" style="color:var(--accent);">19</div>
+                  <div class="member-stat-lbl">งาน</div>
+                </div>
+                <div class="member-stat">
+                  <div class="member-stat-val" style="color:var(--accent-alt);">4</div>
+                  <div class="member-stat-lbl">ตัวแทน</div>
+                </div>
+              </div>
+              <div class="member-actions">
+                <span class="status-pill pill-idle"><span class="pill-dot"></span>ออฟไลน์</span>
+                <button class="btn btn-ghost" style="font-size:11px;padding:.25rem .55rem;margin-left:.4rem;">⚙️</button>
+              </div>
+            </div>
+
+          </div><!-- /population-list -->
+
+          <!-- Summary Card -->
+          <div>
+            <div class="pop-summary-card">
+              <div class="card-title">สรุปทีม</div>
+              <div class="pop-donut-wrap">
+                <svg class="pop-donut-svg" viewBox="0 0 120 120">
+                  <!-- Background circle -->
+                  <circle cx="60" cy="60" r="48" fill="none" stroke="var(--border)" stroke-width="14"/>
+                  <!-- Segment: Engineer 40% -->
+                  <circle cx="60" cy="60" r="48" fill="none"
+                    stroke="var(--accent)" stroke-width="14"
+                    stroke-dasharray="120.6 180.9"
+                    stroke-dashoffset="0"/>
+                  <!-- Segment: Analyst 25% -->
+                  <circle cx="60" cy="60" r="48" fill="none"
+                    stroke="var(--accent-alt)" stroke-width="14"
+                    stroke-dasharray="75.4 225.2"
+                    stroke-dashoffset="-120.6"/>
+                  <!-- Segment: Designer 20% -->
+                  <circle cx="60" cy="60" r="48" fill="none"
+                    stroke="var(--accent-warn)" stroke-width="14"
+                    stroke-dasharray="60.3 240.2"
+                    stroke-dashoffset="-196"/>
+                  <!-- Segment: Security 15% -->
+                  <circle cx="60" cy="60" r="48" fill="none"
+                    stroke="var(--accent-danger)" stroke-width="14"
+                    stroke-dasharray="45.2 255.3"
+                    stroke-dashoffset="-256.3"/>
+                </svg>
+                <div class="pop-donut-center">
+                  <div class="pop-donut-num">8</div>
+                  <div class="pop-donut-sub">สมาชิก</div>
+                </div>
+              </div>
+
+              <div class="pop-legend">
+                <div class="pop-legend-item">
+                  <div class="pop-legend-dot" style="background:var(--accent);"></div>
+                  <span>นักพัฒนา</span>
+                  <span style="margin-left:auto;font-weight:700;">40%</span>
+                </div>
+                <div class="pop-legend-item">
+                  <div class="pop-legend-dot" style="background:var(--accent-alt);"></div>
+                  <span>นักวิเคราะห์</span>
+                  <span style="margin-left:auto;font-weight:700;">25%</span>
+                </div>
+                <div class="pop-legend-item">
+                  <div class="pop-legend-dot" style="background:var(--accent-warn);"></div>
+                  <span>นักออกแบบ</span>
+                  <span style="margin-left:auto;font-weight:700;">20%</span>
+                </div>
+                <div class="pop-legend-item">
+                  <div class="pop-legend-dot" style="background:var(--accent-danger);"></div>
+                  <span>ความปลอดภัย</span>
+                  <span style="margin-left:auto;font-weight:700;">15%</span>
+                </div>
+              </div>
+
+              <div style="border-top:1px solid var(--border);padding-top:1rem;display:flex;flex-direction:column;gap:.5rem;">
+                <div style="display:flex;justify-content:space-between;font-size:12px;">
+                  <span style="color:var(--text-muted);">ออนไลน์ขณะนี้</span>
+                  <span style="font-weight:700;color:var(--accent-alt);">3 / 8</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:12px;">
+                  <span style="color:var(--text-muted);">งานรวมวันนี้</span>
+                  <span style="font-weight:700;">135 งาน</span>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:12px;">
+                  <span style="color:var(--text-muted);">ตัวแทนที่ใช้งาน</span>
+                  <span style="font-weight:700;color:var(--accent);">12 ตัว</span>
+                </div>
+              </div>
+
+              <button class="btn btn-ghost" style="width:100%;font-size:12px;" onclick="showToast('ดาวน์โหลดรายงานทีม','success')">
+                📥 ดาวน์โหลดรายงาน
+              </button>
+            </div>
+          </div>
+
+        </div><!-- /population-layout -->
+      </div>
+    </div>
+
+    <!-- ==================== PAGE 8 : นักพัฒนา ==================== -->
+    <div id="page-developer" class="page">
+      <div class="topbar">
+        <span class="topbar-title">⚡ นักพัฒนา</span>
+        <span class="topbar-subtitle">API Reference &amp; SDK</span>
+        <div class="topbar-actions">
+          <button class="btn btn-ghost" onclick="showToast('คัดลอก Base URL แล้ว','success')">📋 คัดลอก Base URL</button>
+          <button class="btn btn-primary" onclick="openModal('modal-new-key')">＋ สร้าง API Key</button>
+        </div>
+      </div>
+      <div class="content">
+        <div class="dev-layout">
+
+          <!-- Dev Nav -->
+          <div class="dev-nav">
+            <div class="dev-nav-section">เริ่มต้น</div>
+            <div class="dev-nav-item active">📖 ภาพรวม API</div>
+            <div class="dev-nav-item">🔑 การยืนยันตัวตน</div>
+            <div class="dev-nav-section">ตัวแทน</div>
+            <div class="dev-nav-item">
+              <span class="method-badge method-get">GET</span> รายการตัวแทน
+            </div>
+            <div class="dev-nav-item">
+              <span class="method-badge method-post">POST</span> สร้างตัวแทน
+            </div>
+            <div class="dev-nav-item">
+              <span class="method-badge method-put">PUT</span> แก้ไขตัวแทน
+            </div>
+            <div class="dev-nav-item">
+              <span class="method-badge method-del">DEL</span> ลบตัวแทน
+            </div>
+            <div class="dev-nav-section">งาน</div>
+            <div class="dev-nav-item">
+              <span class="method-badge method-get">GET</span> รายการงาน
+            </div>
+            <div class="dev-nav-item">
+              <span class="method-badge method-post">POST</span> รันงาน
+            </div>
+            <div class="dev-nav-section">แชท</div>
+            <div class="dev-nav-item">
+              <span class="method-badge method-post">POST</span> ส่งข้อความ
+            </div>
+            <div class="dev-nav-item">
+              <span class="method-badge method-get">GET</span> ประวัติแชท
+            </div>
+            <div class="dev-nav-section">Webhook</div>
+            <div class="dev-nav-item">
+              <span class="method-badge method-post">POST</span> ลงทะเบียน
+            </div>
+            <div class="dev-nav-item">
+              <span class="method-badge method-del">DEL</span> ยกเลิก
+            </div>
+          </div>
+
+          <!-- Dev Content -->
+          <div class="dev-content">
+
+            <!-- API Key Card -->
+            <div class="api-key-card">
+              <div class="card-title">🔑 API Keys</div>
+              <div style="display:flex;flex-direction:column;gap:.75rem;margin-top:.5rem;">
+                <div style="display:flex;align-items:center;justify-content:space-between;">
+                  <div>
+                    <div style="font-size:13px;font-weight:700;">Production Key</div>
+                    <div style="font-size:11px;color:var(--text-muted);">สร้างเมื่อ 28 ส.ค. 2026 · ใช้งานล่าสุด: 2 นาทีที่แล้ว</div>
+                  </div>
+                  <span class="status-pill pill-running"><span class="pill-dot"></span>ใช้งานอยู่</span>
+                </div>
+                <div class="api-key-row">
+                  <div class="api-key-val">ak2_prod_••••••••••••••••••••••••3f9a</div>
+                  <button class="btn btn-ghost" style="white-space:nowrap;font-size:12px;" onclick="showToast('คัดลอก API Key แล้ว','success')">📋 คัดลอก</button>
+                  <button class="btn btn-ghost" style="font-size:12px;" onclick="showToast('แสดง Key','info')">👁️</button>
+                </div>
+
+                <div style="border-top:1px solid var(--border);padding-top:.75rem;display:flex;align-items:center;justify-content:space-between;">
+                  <div>
+                    <div style="font-size:13px;font-weight:700;">Development Key</div>
+                    <div style="font-size:11px;color:var(--text-muted);">สร้างเมื่อ 1 ส.ค. 2026 · ใช้งานล่าสุด: 1 ชั่วโมงที่แล้ว</div>
+                  </div>
+                  <span class="status-pill pill-idle"><span class="pill-dot"></span>Dev</span>
+                </div>
+                <div class="api-key-row">
+                  <div class="api-key-val">ak2_dev_••••••••••••••••••••••••8c2b</div>
+                  <button class="btn btn-ghost" style="white-space:nowrap;font-size:12px;" onclick="showToast('คัดลอก API Key แล้ว','success')">📋 คัดลอก</button>
+                  <button class="btn btn-ghost" style="font-size:12px;" onclick="showToast('แสดง Key','info')">👁️</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Base URL -->
+            <div class="api-key-card">
+              <div class="card-title">🌐 Base URL</div>
+              <div class="api-key-row" style="margin-top:.5rem;">
+                <div class="api-key-val">https://api.akents02.ai/v1</div>
+                <button class="btn btn-ghost" style="white-space:nowrap;font-size:12px;" onclick="showToast('คัดลอก Base URL แล้ว','success')">📋 คัดลอก</button>
+              </div>
+            </div>
+
+            <!-- SDK Tabs + Code Example -->
+            <div class="endpoint-card">
+              <div class="endpoint-header">
+                <span class="method-badge method-post">POST</span>
+                <span class="endpoint-path">/v1/agents/{agent_id}/run</span>
+                <span class="endpoint-desc">รันตัวแทนพร้อมข้อความ</span>
+              </div>
+              <div class="endpoint-body">
+                <div class="sdk-tabs">
+                  <div class="sdk-tab active" onclick="switchTab(this,'tab-python')">🐍 Python</div>
+                  <div class="sdk-tab" onclick="switchTab(this,'tab-js')">🟨 JavaScript</div>
+                  <div class="sdk-tab" onclick="switchTab(this,'tab-curl')">🖥️ cURL</div>
+                  <div class="sdk-tab" onclick="switchTab(this,'tab-go')">🐹 Go</div>
+                </div>
+
+                <div id="tab-python" class="code-block">
+                  <pre><span class="code-comment"># ติดตั้ง: pip install akents-sdk</span>
+<span class="code-keyword">import</span> akents
+
+<span class="code-comment"># เริ่มต้น client</span>
+client = akents.Client(
+    api_key=<span class="code-string">"ak2_prod_your_key_here"</span>
+)
+
+<span class="code-comment"># รันตัวแทน</span>
+response = client.agents.run(
+    agent_id=<span class="code-string">"agt_research_001"</span>,
+    message=<span class="code-string">"วิเคราะห์ตลาด AI ในไทยปี 2026"</span>,
+    stream=<span class="code-keyword">True</span>
+)
+
+<span class="code-keyword">for</span> chunk <span class="code-keyword">in</span> response:
+    print(chunk.text, end=<span class="code-string">""</span>, flush=<span class="code-keyword">True</span>)</pre>
+                </div>
+
+                <div id="tab-js" class="code-block" style="display:none;">
+                  <pre><span class="code-comment">// ติดตั้ง: npm install @akents/sdk</span>
+<span class="code-keyword">import</span> Akents <span class="code-keyword">from</span> <span class="code-string">'@akents/sdk'</span>
+
+<span class="code-keyword">const</span> client = <span class="code-keyword">new</span> Akents({
+  apiKey: <span class="code-string">'ak2_prod_your_key_here'</span>
+})
+
+<span class="code-comment">// รันตัวแทนแบบ streaming</span>
+<span class="code-keyword">const</span> stream = <span class="code-keyword">await</span> client.agents.run({
+  agentId: <span class="code-string">'agt_research_001'</span>,
+  message: <span class="code-string">'วิเคราะห์ตลาด AI ในไทยปี 2026'</span>,
+  stream: <span class="code-keyword">true</span>
+})
+
+<span class="code-keyword">for await</span> (<span class="code-keyword">const</span> chunk <span class="code-keyword">of</span> stream) {
+  process.stdout.write(chunk.text)
+}</pre>
+                </div>
+
+                <div id="tab-curl" class="code-block" style="display:none;">
+                  <pre><span class="code-comment"># รันตัวแทนผ่าน cURL</span>
+curl -X POST <span class="code-string">https://api.akents02.ai/v1/agents/agt_research_001/run</span> \
+  -H <span class="code-string">"Authorization: Bearer ak2_prod_your_key_here"</span> \
+  -H <span class="code-string">"Content-Type: application/json"</span> \
+  -d <span class="code-string">'{
+    "message": "วิเคราะห์ตลาด AI ในไทยปี 2026",
+    "stream": true,
+    "config": {
+      "max_tokens": 2048,
+      "temperature": 0.7
+    }
+  }'</span></pre>
+                </div>
+
+                <div id="tab-go" class="code-block" style="display:none;">
+                  <pre><span class="code-comment">// ติดตั้ง: go get github.com/akents/sdk-go</span>
+<span class="code-keyword">package</span> main
+
+<span class="code-keyword">import</span> (
+    <span class="code-string">"fmt"</span>
+    akents <span class="code-string">"github.com/akents/sdk-go"</span>
+)
+
+<span class="code-keyword">func</span> main() {
+    client := akents.NewClient(
+        <span class="code-string">"ak2_prod_your_key_here"</span>,
+    )
+    resp, _ := client.Agents.Run(
+        <span class="code-string">"agt_research_001"</span>,
+        <span class="code-string">"วิเคราะห์ตลาด AI ในไทยปี 2026"</span>,
+    )
+    fmt.Println(resp.Text)
+}</pre>
+                </div>
+
+                <!-- Response Example -->
+                <div style="margin-top:1rem;">
+                  <div style="font-size:12px;font-weight:700;color:var(--text-muted);margin-bottom:.5rem;">📨 Response</div>
+                  <div class="code-block">
+                    <pre>{
+  <span class="code-string">"id"</span>: <span class="code-string">"run_29xKa7mQ"</span>,
+  <span class="code-string">"agent_id"</span>: <span class="code-string">"agt_research_001"</span>,
+  <span class="code-string">"status"</span>: <span class="code-string">"completed"</span>,
+  <span class="code-string">"text"</span>: <span class="code-string">"ตลาด Multi-Agent AI ในไทยปี 2026..."</span>,
+  <span class="code-string">"tokens_used"</span>: <span class="code-number">1248</span>,
+  <span class="code-string">"latency_ms"</span>: <span class="code-number">842</span>,
+  <span class="code-string">"created_at"</span>: <span class="code-string">"2026-08-29T21:43:00+07:00"</span>
+}</pre>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Rate Limits Card -->
+            <div class="api-key-card">
+              <div class="card-title">📊 Rate Limits &amp; Usage</div>
+              <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:.5rem;">
+                <div class="stat-card" style="margin:0;">
+                  <div class="stat-label">API Calls วันนี้</div>
+                  <div class="stat-value" style="font-size:22px;color:var(--accent);">1,248</div>
+                  <div class="stat-delta">จากโควต้า 10,000</div>
+                </div>
+                <div class="stat-card" style="margin:0;">
+                  <div class="stat-label">Tokens ใช้ไป</div>
+                  <div class="stat-value" style="font-size:22px;color:var(--accent-alt);">842K</div>
+                  <div class="stat-delta">จาก 5M / เดือน</div>
+                </div>
+                <div class="stat-card" style="margin:0;">
+                  <div class="stat-label">Avg Latency</div>
+                  <div class="stat-value" style="font-size:22px;color:var(--accent-warn);">764ms</div>
+                  <div class="stat-delta">▼ ดีกว่าเมื่อวาน</div>
+                </div>
+              </div>
+            </div>
+
+          </div><!-- /dev-content -->
+        </div><!-- /dev-layout -->
+      </div>
+    </div><!-- /page-developer -->
+
+    <!-- ==================== PAGE 9 : โปรไฟล์ ==================== -->
+    <div id="page-profile" class="page">
+      <div class="topbar">
+        <span class="topbar-title">👤 โปรไฟล์</span>
+        <span class="topbar-subtitle">ตั้งค่าบัญชีและระบบ</span>
+        <div class="topbar-actions">
+          <button class="btn btn-ghost" onclick="showToast('ออกจากระบบ...','error')">🚪 ออกจากระบบ</button>
+          <button class="btn btn-primary" onclick="showToast('บันทึกการเปลี่ยนแปลงแล้ว','success')">💾 บันทึก</button>
+        </div>
+      </div>
+      <div class="content">
+        <div class="profile-layout">
+
+          <!-- Profile Card -->
+          <div>
+            <div class="profile-card">
+              <div class="profile-avatar-lg">AK</div>
+              <div class="profile-name-lg">AkentS Admin</div>
+              <div class="profile-email">admin@akents02.ai</div>
+              <div class="profile-plan">⚡ Pro Plan</div>
+              <div class="profile-stats-row">
+                <div class="profile-stat">
+                  <div class="profile-stat-val" style="color:var(--accent);">12</div>
+                  <div class="profile-stat-lbl">ตัวแทน</div>
+                </div>
+                <div class="profile-stat">
+                  <div class="profile-stat-val" style="color:var(--accent-alt);">135</div>
+                  <div class="profile-stat-lbl">งาน</div>
+                </div>
+                <div class="profile-stat">
+                  <div class="profile-stat-val" style="color:var(--accent-warn);">24</div>
+                  <div class="profile-stat-lbl">เครื่องมือ</div>
+                </div>
+              </div>
+              <div style="width:100%;border-top:1px solid var(--border);padding-top:1rem;display:flex;flex-direction:column;gap:.5rem;">
+                <div style="font-size:11px;color:var(--text-muted);font-weight:700;text-transform:uppercase;letter-spacing:.7px;margin-bottom:.25rem;">การใช้งานเดือนนี้</div>
+                <div style="display:flex;justify-content:space-between;font-size:12px;">
+                  <span style="color:var(--text-muted);">API Calls</span>
+                  <span style="font-weight:700;">1,248 / 10,000</span>
+                </div>
+                <div class="progress-bar-wrap" style="height:6px;">
+                  <div class="progress-bar-fill" style="width:12.5%;"></div>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:12px;margin-top:.25rem;">
+                  <span style="color:var(--text-muted);">Tokens</span>
+                  <span style="font-weight:700;">842K / 5M</span>
+                </div>
+                <div class="progress-bar-wrap" style="height:6px;">
+                  <div class="progress-bar-fill" style="width:16.8%;"></div>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:12px;margin-top:.25rem;">
+                  <span style="color:var(--text-muted);">Storage</span>
+                  <span style="font-weight:700;">4.2 / 20 GB</span>
+                </div>
+                <div class="progress-bar-wrap" style="height:6px;">
+                  <div class="progress-bar-fill" style="width:21%;"></div>
+                </div>
+              </div>
+              <button class="btn btn-ghost" style="width:100%;font-size:12px;margin-top:.25rem;" onclick="showToast('เปิดหน้า Billing แล้ว','info')">
+                💳 จัดการ Subscription
+              </button>
+            </div>
+          </div>
+
+          <!-- Settings Sections -->
+          <div class="settings-sections">
+
+            <!-- ข้อมูลส่วนตัว -->
+            <div class="settings-card">
+              <div class="settings-card-header">👤 ข้อมูลส่วนตัว</div>
+              <div class="settings-row">
+                <div class="settings-row-info">
+                  <div class="settings-row-label">ชื่อแสดงผล</div>
+                  <div class="settings-row-desc">ชื่อที่แสดงในระบบและ API</div>
+                </div>
+                <input type="text" value="AkentS Admin" style="width:220px;">
+              </div>
+              <div class="settings-row">
+                <div class="settings-row-info">
+                  <div class="settings-row-label">อีเมล</div>
+                  <div class="settings-row-desc">ใช้สำหรับเข้าสู่ระบบและแจ้งเตือน</div>
+                </div>
+                <input type="email" value="admin@akents02.ai" style="width:220px;">
+              </div>
+              <div class="settings-row">
+                <div class="settings-row-info">
+                  <div class="settings-row-label">ภาษา</div>
+                  <div class="settings-row-desc">ภาษาหลักของอินเทอร์เฟซ</div>
+                </div>
+                <select class="filter-select" style="width:220px;">
+                  <option>🇹🇭 ภาษาไทย</option>
+                  <option>🇬🇧 English</option>
+                  <option>🇯🇵 日本語</option>
+                </select>
+              </div>
+              <div class="settings-row">
+                <div class="settings-row-info">
+                  <div class="settings-row-label">เขตเวลา</div>
+                  <div class="settings-row-desc">ใช้แสดงเวลาในระบบ</div>
+                </div>
+                <select class="filter-select" style="width:220px;">
+                  <option>Asia/Bangkok (UTC+7)</option>
+                  <option>Asia/Singapore (UTC+8)</option>
+                  <option>UTC (UTC+0)</option>
+                </select>
+              </div>
+            </div>
+
+            <!-- การแจ้งเตือน -->
+            <div class="settings-card">
+              <div class="settings-card-header">🔔 การแจ้งเตือน</div>
+              <div class="settings-row">
+                <div class="settings-row-info">
+                  <div class="settings-row-label">แจ้งเตือนเมื่องานเสร็จ</div>
+                  <div class="settings-row-desc">รับการแจ้งเตือนทุกครั้งที่งานสำเร็จหรือล้มเหลว</div>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" checked>
+                  <div class="toggle-track"></div>
+                </label>
+              </div>
+              <div class="settings-row">
+                <div class="settings-row-info">
+                  <div class="settings-row-label">แจ้งเตือนทาง Email</div>
+                  <div class="settings-row-desc">ส่งสรุปรายวันไปยังอีเมล</div>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" checked>
+                  <div class="toggle-track"></div>
+                </label>
+              </div>
+              <div class="settings-row">
+                <div class="settings-row-info">
+                  <div class="settings-row-label">แจ้งเตือนทาง Slack</div>
+                  <div class="settings-row-desc">ส่งข้อความแจ้งเตือนไปยัง Slack channel</div>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox">
+                  <div class="toggle-track"></div>
+                </label>
+              </div>
+              <div class="settings-row">
+                <div class="settings-row-info">
+                  <div class="settings-row-label">แจ้งเตือน Rate Limit</div>
+                  <div class="settings-row-desc">เตือนเมื่อใช้งาน API เกิน 80%</div>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" checked>
+                  <div class="toggle-track"></div>
+                </label>
+              </div>
+            </div>
+
+            <!-- ความปลอดภัย -->
+            <div class="settings-card">
+              <div class="settings-card-header">🛡️ ความปลอดภัย</div>
+              <div class="settings-row">
+                <div class="settings-row-info">
+                  <div class="settings-row-label">รหัสผ่าน</div>
+                  <div class="settings-row-desc">เปลี่ยนครั้งล่าสุด 30 วันที่แล้ว</div>
+                </div>
+                <button class="btn btn-ghost" style="font-size:12px;" onclick="openModal('modal-change-pw')">🔒 เปลี่ยนรหัสผ่าน</button>
+              </div>
+              <div class="settings-row">
+                <div class="settings-row-info">
+                  <div class="settings-row-label">Two-Factor Auth (2FA)</div>
+                  <div class="settings-row-desc">เพิ่มความปลอดภัยด้วยรหัส OTP</div>
+                </div>
+                <label class="toggle-switch">
+                  <input type="checkbox" checked>
+                  <div class="toggle-track"></div>
+                </label>
+              </div>
+              <div class="settings-row">
+                <div class="settings-row-info">
+                  <div class="settings-row-label">Session ที่ใช้งานอยู่</div>
+                  <div class="settings-row-desc">3 อุปกรณ์ที่ล็อกอินอยู่</div>
+                </div>
+                <button class="btn btn-ghost" style="font-size:12px;" onclick="showToast('ออกจากระบบทุก Session แล้ว','error')">🚪 ออกทั้งหมด</button>
+              </div>
+            </div>
+
+            <!-- Danger Zone -->
+            <div class="settings-card danger-zone">
+              <div class="settings-card-header">⚠️ Danger Zone</div>
+              <div class="settings-row">
+                <div class="settings-row-info">
+                  <div class="settings-row-label">รีเซ็ตข้อมูลทั้งหมด</div>
+                  <div class="settings-row-desc">ลบตัวแทน งาน และ workflow ทั้งหมด (ไม่สามารถกู้คืนได้)</div>
+                </div>
+                <button class="btn btn-ghost" style="font-size:12px;border-color:var(--accent-danger);color:var(--accent-danger);" onclick="showToast('กรุณายืนยันการรีเซ็ต','error')">🗑️ รีเซ็ต</button>
+              </div>
+              <div class="settings-row">
+                <div class="settings-row-info">
+                  <div class="settings-row-label">ลบบัญชี</div>
+                  <div class="settings-row-desc">ลบบัญชีและข้อมูลทั้งหมดอย่างถาวร</div>
+                </div>
+                <button class="btn btn-danger" style="font-size:12px;" onclick="showToast('กรุณาติดต่อ support@akents02.ai','error')">❌ ลบบัญชี</button>
+              </div>
+            </div>
+
+          </div><!-- /settings-sections -->
+        </div><!-- /profile-layout -->
+      </div>
+    </div><!-- /page-profile -->
+
+  </div><!-- /main -->
+</div><!-- /shell -->
+
+<!-- ============================================================
+     MODALS
+============================================================ -->
+
+<!-- Modal: สร้างตัวแทนใหม่ -->
+<div class="modal-overlay" id="modal-new-agent">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">🤖 สร้างตัวแทนใหม่</div>
+      <div class="modal-close" onclick="closeModal('modal-new-agent')">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-field">
+        <label class="form-label">ชื่อตัวแทน</label>
+        <input type="text" placeholder="เช่น MyResearchBot">
+      </div>
+      <div class="form-field">
+        <label class="form-label">โมเดล AI</label>
+        <select class="filter-select">
+          <option>GPT-4o (OpenAI)</option>
+          <option>Claude 3.5 Sonnet (Anthropic)</option>
+          <option>Gemini 1.5 Pro (Google)</option>
+          <option>Llama 3.1 70B (Meta)</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label class="form-label">คำอธิบายตัวแทน</label>
+        <textarea rows="3" placeholder="อธิบายหน้าที่และความสามารถของตัวแทน..."></textarea>
+      </div>
+      <div class="form-field">
+        <label class="form-label">System Prompt</label>
+        <textarea rows="4" placeholder="คุณคือผู้ช่วย AI ที่เชี่ยวชาญด้าน..."></textarea>
+      </div>
+      <div class="form-field">
+        <label class="form-label">เครื่องมือที่ใช้ได้</label>
+        <div style="display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.25rem;">
+          <label style="display:flex;align-items:center;gap:.4rem;font-size:12px;cursor:pointer;">
+            <input type="checkbox" checked> 🔍 Web Search
+          </label>
+          <label style="display:flex;align-items:center;gap:.4rem;font-size:12px;cursor:pointer;">
+            <input type="checkbox" checked> 💻 Code Exec
+          </label>
+          <label style="display:flex;align-items:center;gap:.4rem;font-size:12px;cursor:pointer;">
+            <input type="checkbox"> 🗄️ Database
+          </label>
+          <label style="display:flex;align-items:center;gap:.4rem;font-size:12px;cursor:pointer;">
+            <input type="checkbox"> 📨 Slack
+          </label>
+          <label style="display:flex;align-items:center;gap:.4rem;font-size:12px;cursor:pointer;">
+            <input type="checkbox"> 🐙 GitHub
+          </label>
+          <label style="display:flex;align-items:center;gap:.4rem;font-size:12px;cursor:pointer;">
+            <input type="checkbox"> 📡 Webhook
+          </label>
+        </div>
+      </div>
+      <div class="form-field">
+        <label class="form-label">อุณหภูมิ (Temperature)</label>
+        <input type="range" min="0" max="100" value="70"
+          style="width:100%;accent-color:var(--accent);background:none;border:none;padding:0;">
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text-muted);margin-top:.2rem;">
+          <span>0 (แม่นยำ)</span>
+          <span style="color:var(--accent);font-weight:700;">0.7</span>
+          <span>1 (สร้างสรรค์)</span>
+        </div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-new-agent')">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="closeModal('modal-new-agent');showToast('สร้างตัวแทนใหม่สำเร็จ! 🤖','success')">
+        ＋ สร้างตัวแทน
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: สร้างงานใหม่ -->
+<div class="modal-overlay" id="modal-new-job">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">📋 สร้างงานใหม่</div>
+      <div class="modal-close" onclick="closeModal('modal-new-job')">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-field">
+        <label class="form-label">ชื่องาน</label>
+        <input type="text" placeholder="เช่น วิเคราะห์รายงานรายสัปดาห์">
+      </div>
+      <div class="form-field">
+        <label class="form-label">ตัวแทนที่รับผิดชอบ</label>
+        <select class="filter-select">
+          <option>🤖 ResearchBot</option>
+          <option>💻 CodeHelper</option>
+          <option>📊 DataPipeline Agent</option>
+          <option>🛡️ SecurityGuard</option>
+          <option>📣 MarketingBot</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label class="form-label">ข้อความ / Prompt</label>
+        <textarea rows="4" placeholder="ระบุสิ่งที่ต้องการให้ตัวแทนทำ..."></textarea>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:.75rem;">
+        <div class="form-field">
+          <label class="form-label">ลำดับความสำคัญ</label>
+          <select class="filter-select">
+            <option>🔴 สูง</option>
+            <option>🟡 ปานกลาง</option>
+            <option>🟢 ต่ำ</option>
+          </select>
+        </div>
+        <div class="form-field">
+          <label class="form-label">Timeout (วินาที)</label>
+          <input type="number" value="300">
+        </div>
+      </div>
+      <div class="form-field">
+        <label class="form-label">ตั้งเวลารัน (ไม่บังคับ)</label>
+        <input type="datetime-local">
+      </div>
+      <div class="form-field">
+        <label class="form-label">Webhook แจ้งเตือนเมื่อเสร็จ</label>
+        <input type="url" placeholder="https://hooks.example.com/...">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-new-job')">ยกเลิก</button>
+      <button class="btn btn-ghost" onclick="closeModal('modal-new-job');showToast('บันทึกงานไว้ในคิวแล้ว','info')">
+        📥 บันทึกเป็นร่าง
+      </button>
+      <button class="btn btn-primary" onclick="closeModal('modal-new-job');showToast('เริ่มงานใหม่สำเร็จ! 🚀','success')">
+        ▶ รันทันที
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: เพิ่มสมาชิก -->
+<div class="modal-overlay" id="modal-new-member">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">👥 เพิ่มสมาชิกใหม่</div>
+      <div class="modal-close" onclick="closeModal('modal-new-member')">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-field">
+        <label class="form-label">อีเมล</label>
+        <input type="email" placeholder="name@example.com">
+      </div>
+      <div class="form-field">
+        <label class="form-label">บทบาท</label>
+        <select class="filter-select">
+          <option>👑 เจ้าของ</option>
+          <option>⚙️ ผู้ดูแลระบบ</option>
+          <option>🔧 นักพัฒนา</option>
+          <option>📊 นักวิเคราะห์</option>
+          <option>👁️ ผู้ดู (Read-only)</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label class="form-label">ทีม</label>
+        <select class="filter-select">
+          <option>🚀 ทีมพัฒนา</option>
+          <option>📈 ทีมวิเคราะห์</option>
+          <option>🎨 ทีมออกแบบ</option>
+          <option>➕ สร้างทีมใหม่</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label class="form-label">สิทธิ์การเข้าถึง</label>
+        <div style="display:flex;flex-direction:column;gap:.4rem;margin-top:.25rem;">
+          <label style="display:flex;align-items:center;gap:.5rem;font-size:12px;cursor:pointer;">
+            <input type="checkbox" checked> 🤖 จัดการตัวแทน
+          </label>
+          <label style="display:flex;align-items:center;gap:.5rem;font-size:12px;cursor:pointer;">
+            <input type="checkbox" checked> 📋 รันงาน
+          </label>
+          <label style="display:flex;align-items:center;gap:.5rem;font-size:12px;cursor:pointer;">
+            <input type="checkbox"> 🔧 จัดการเครื่องมือ
+          </label>
+          <label style="display:flex;align-items:center;gap:.5rem;font-size:12px;cursor:pointer;">
+            <input type="checkbox"> ⚡ เข้าถึง API Keys
+          </label>
+          <label style="display:flex;align-items:center;gap:.5rem;font-size:12px;cursor:pointer;">
+            <input type="checkbox"> 👥 จัดการสมาชิก
+          </label>
+        </div>
+      </div>
+      <div style="background:rgba(108,99,255,.08);border:1px solid rgba(108,99,255,.2);border-radius:var(--radius-sm);padding:.75rem;font-size:12px;color:var(--text-secondary);">
+        📧 ระบบจะส่งอีเมลเชิญไปยังที่อยู่ที่ระบุ ลิงก์มีอายุ 7 วัน
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-new-member')">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="closeModal('modal-new-member');showToast('ส่งคำเชิญแล้ว! 📧','success')">
+        📨 ส่งคำเชิญ
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: สร้าง API Key ใหม่ (ต่อ) -->
+<div class="modal-overlay" id="modal-new-key">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">🔑 สร้าง API Key ใหม่</div>
+      <div class="modal-close" onclick="closeModal('modal-new-key')">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-field">
+        <label class="form-label">ชื่อ Key</label>
+        <input type="text" placeholder="เช่น Production-v2, Staging">
+      </div>
+      <div class="form-field">
+        <label class="form-label">สภาพแวดล้อม</label>
+        <select class="filter-select">
+          <option>🟢 Production</option>
+          <option>🟡 Staging</option>
+          <option>🔵 Development</option>
+        </select>
+      </div>
+      <div class="form-field">
+        <label class="form-label">สิทธิ์ (Scopes)</label>
+        <div style="display:flex;flex-direction:column;gap:.4rem;margin-top:.25rem;">
+          <label style="display:flex;align-items:center;gap:.5rem;font-size:12px;cursor:pointer;">
+            <input type="checkbox" checked> agents:read · agents:write
+          </label>
+          <label style="display:flex;align-items:center;gap:.5rem;font-size:12px;cursor:pointer;">
+            <input type="checkbox" checked> jobs:read · jobs:write
+          </label>
+          <label style="display:flex;align-items:center;gap:.5rem;font-size:12px;cursor:pointer;">
+            <input type="checkbox" checked> chat:read · chat:write
+          </label>
+          <label style="display:flex;align-items:center;gap:.5rem;font-size:12px;cursor:pointer;">
+            <input type="checkbox"> tools:read · tools:write
+          </label>
+          <label style="display:flex;align-items:center;gap:.5rem;font-size:12px;cursor:pointer;">
+            <input type="checkbox"> admin:full
+          </label>
+        </div>
+      </div>
+      <div class="form-field">
+        <label class="form-label">วันหมดอายุ</label>
+        <select class="filter-select">
+          <option>ไม่มีวันหมดอายุ</option>
+          <option>30 วัน</option>
+          <option>90 วัน</option>
+          <option>1 ปี</option>
+          <option>กำหนดเอง</option>
+        </select>
+      </div>
+      <div style="background:rgba(245,158,11,.08);border:1px solid rgba(245,158,11,.25);
+                  border-radius:var(--radius-sm);padding:.75rem;font-size:12px;
+                  color:var(--accent-warn);display:flex;gap:.5rem;align-items:flex-start;">
+        <span style="flex-shrink:0;">⚠️</span>
+        <span>API Key จะแสดงเพียงครั้งเดียวหลังสร้าง กรุณาคัดลอกและเก็บในที่ปลอดภัยทันที</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-new-key')">ยกเลิก</button>
+      <button class="btn btn-primary" onclick="closeModal('modal-new-key');openModal('modal-show-key')">
+        🔑 สร้าง Key
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: แสดง API Key ที่สร้างใหม่ -->
+<div class="modal-overlay" id="modal-show-key">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">✅ API Key สร้างสำเร็จ</div>
+      <div class="modal-close" onclick="closeModal('modal-show-key')">✕</div>
+    </div>
+    <div class="modal-body">
+      <div style="background:rgba(0,212,170,.08);border:1px solid rgba(0,212,170,.25);
+                  border-radius:var(--radius-sm);padding:1rem;text-align:center;">
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:.5rem;font-weight:700;
+                    text-transform:uppercase;letter-spacing:.7px;">API Key ของคุณ</div>
+        <div style="font-family:'JetBrains Mono','Fira Code',monospace;font-size:12px;
+                    color:var(--accent-alt);word-break:break-all;line-height:1.8;">
+          ak2_prod_x9mK2pQrL7nVwTbZ4cYhJdAeF3gUs8qR
+        </div>
+      </div>
+      <div style="display:flex;gap:.5rem;">
+        <button class="btn btn-primary" style="flex:1;"
+          onclick="showToast('คัดลอก API Key แล้ว! เก็บในที่ปลอดภัย 🔐','success')">
+          📋 คัดลอก Key
+        </button>
+        <button class="btn btn-ghost" style="flex:1;"
+          onclick="showToast('ดาวน์โหลด .env แล้ว','success')">
+          📥 ดาวน์โหลด .env
+        </button>
+      </div>
+      <div style="background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.2);
+                  border-radius:var(--radius-sm);padding:.75rem;font-size:12px;
+                  color:var(--accent-danger);display:flex;gap:.5rem;align-items:flex-start;">
+        <span style="flex-shrink:0;">🔴</span>
+        <span>Key นี้จะ<strong>ไม่แสดงอีก</strong>หลังจากปิด dialog นี้ หากสูญหายต้องสร้างใหม่</span>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-primary" style="width:100%;"
+        onclick="closeModal('modal-show-key');showToast('บันทึก API Key แล้ว ✓','success')">
+        ✅ เข้าใจแล้ว ปิดหน้าต่างนี้
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: เปลี่ยนรหัสผ่าน -->
+<div class="modal-overlay" id="modal-change-pw">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-title">🔒 เปลี่ยนรหัสผ่าน</div>
+      <div class="modal-close" onclick="closeModal('modal-change-pw')">✕</div>
+    </div>
+    <div class="modal-body">
+      <div class="form-field">
+        <label class="form-label">รหัสผ่านปัจจุบัน</label>
+        <input type="password" placeholder="••••••••••••">
+      </div>
+      <div class="form-field">
+        <label class="form-label">รหัสผ่านใหม่</label>
+        <input type="password" placeholder="••••••••••••">
+      </div>
+      <div class="form-field">
+        <label class="form-label">ยืนยันรหัสผ่านใหม่</label>
+        <input type="password" placeholder="••••••••••••">
+      </div>
+      <div style="background:var(--bg-hover);border-radius:var(--radius-sm);
+                  padding:.75rem;font-size:11px;color:var(--text-muted);
+                  display:flex;flex-direction:column;gap:.3rem;">
+        <div>✅ อย่างน้อย 8 ตัวอักษร</div>
+        <div>✅ มีตัวพิมพ์ใหญ่และพิมพ์เล็ก</div>
+        <div>✅ มีตัวเลขและอักขระพิเศษ</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeModal('modal-change-pw')">ยกเลิก</button>
+      <button class="btn btn-primary"
+        onclick="closeModal('modal-change-pw');showToast('เปลี่ยนรหัสผ่านสำเร็จ 🔐','success')">
+        🔒 เปลี่ยนรหัสผ่าน
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     TOAST CONTAINER
+============================================================ -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- ============================================================
+     JAVASCRIPT
+============================================================ -->
+<script>
+  /* ── Navigation ── */
+  function goPage(pageId, navEl) {
+    // Hide all pages
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    // Show target page
+    const target = document.getElementById('page-' + pageId);
+    if (target) target.classList.add('active');
+
+    // Update sidebar nav active state
+    if (navEl) {
+      document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+      navEl.classList.add('active');
+    }
+  }
+
+  // Navigate by ID only (for quick-action buttons)
+  function goPageById(pageId) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    const target = document.getElementById('page-' + pageId);
+    if (target) target.classList.add('active');
+
+    // Sync sidebar highlight
+    document.querySelectorAll('.nav-item').forEach(n => {
+      const txt = n.textContent.trim().toLowerCase();
+      const map = {
+        'home':'บ้าน','chat':'แชท','studio':'สตูดิโอ',
+        'agents':'ตัวแทน','tools':'เครื่องมือ','jobs':'งานต่างๆ',
+        'population':'ประชากร','developer':'นักพัฒนา','profile':'โปรไฟล์'
+      };
+      n.classList.toggle('active', txt.includes(map[pageId] || ''));
+    });
+  }
+
+  /* ── Modals ── */
+  function openModal(id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.add('open');
+  }
+
+  function closeModal(id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.remove('open');
+  }
+
+  // Close modal when clicking outside
+  document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', function(e) {
+      if (e.target === this) this.classList.remove('open');
+    });
+  });
+
+  // Close modal on ESC key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      document.querySelectorAll('.modal-overlay.open')
+        .forEach(m => m.classList.remove('open'));
+    }
+  });
+
+  /* ── Toast Notifications ── */
+  function showToast(message, type = 'info') {
+    const icons = { success: '✅', error: '❌', info: 'ℹ️', warn: '⚠️' };
+    const container = document.getElementById('toast-container');
+
+    const toast = document.createElement('div');
+    toast.className = `toast ${type}`;
+    toast.innerHTML = `<span>${icons[type] || 'ℹ️'}</span><span>${message}</span>`;
+    container.appendChild(toast);
+
+    // Auto-remove after 3s
+    setTimeout(() => {
+      toast.style.opacity = '0';
+      toast.style.transform = 'translateX(20px)';
+      toast.style.transition = 'opacity .3s, transform .3s';
+      setTimeout(() => toast.remove(), 300);
+    }, 3000);
+  }
+
+  /* ── Studio Canvas Node Drag ── */
+  let isDragging = false;
+  let dragNode = null;
+  let offsetX = 0;
+  let offsetY = 0;
+
+  document.querySelectorAll('.wf-node').forEach(node => {
+    node.addEventListener('mousedown', function(e) {
+      isDragging = true;
+      dragNode = this;
+      const rect = this.getBoundingClientRect();
+      offsetX = e.clientX - rect.left;
+      offsetY = e.clientY - rect.top;
+      this.classList.add('selected');
+      // Deselect others
+      document.querySelectorAll('.wf-node').forEach(n => {
+        if (n !== this) n.classList.remove('selected');
+      });
+      e.preventDefault();
+    });
+  });
+
+  document.addEventListener('mousemove', function(e) {
+    if (!isDragging || !dragNode) return;
+    const canvas = document.getElementById('studio-canvas');
+    if (!canvas) return;
+    const canvasRect = canvas.getBoundingClientRect();
+    const x = e.clientX - canvasRect.left - offsetX;
+    const y = e.clientY - canvasRect.top - offsetY;
+    dragNode.style.left = Math.max(0, x) + 'px';
+    dragNode.style.top  = Math.max(0, y) + 'px';
+  });
+
+  document.addEventListener('mouseup', function() {
+    isDragging = false;
+    dragNode = null;
+  });
+
+  /* ── Canvas Toolbar Toggle ── */
+  document.querySelectorAll('.canvas-tool-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.canvas-tool-btn')
+        .forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+
+  /* ── Developer SDK Tabs ── */
+  function switchTab(tabEl, tabId) {
+    // Hide all code blocks
+    ['tab-python','tab-js','tab-curl','tab-go'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.style.display = 'none';
+    });
+    // Show selected
+    const target = document.getElementById(tabId);
+    if (target) target.style.display = 'block';
+    // Update tab active styles
+    document.querySelectorAll('.sdk-tab').forEach(t => t.classList.remove('active'));
+    tabEl.classList.add('active');
+  }
+
+  /* ── Tool Category Filter ── */
+  document.querySelectorAll('.tool-category-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.tool-category-btn')
+        .forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      showToast('กรองหมวด: ' + this.textContent.trim().split(' ').slice(1,3).join(' '), 'info');
+    });
+  });
+
+  /* ── Dev Nav Item Highlight ── */
+  document.querySelectorAll('.dev-nav-item').forEach(item => {
+    item.addEventListener('click', function() {
+      document.querySelectorAll('.dev-nav-item')
+        .forEach(i => i.classList.remove('active'));
+      this.classList.add('active');
+    });
+  });
+
+  /* ── Chat Thread Switch ── */
+  document.querySelectorAll('.thread-item').forEach(item => {
+    item.addEventListener('click', function() {
+      document.querySelectorAll('.thread-item')
+        .forEach(t => t.classList.remove('active'));
+      this.classList.add('active');
+      showToast('เปิดการสนทนา: ' + this.querySelector('.thread-name').textContent, 'info');
+    });
+  });
+
+  /* ── Chat Send on Enter ── */
+  const chatTextarea = document.querySelector('.chat-input-bar textarea');
+  if (chatTextarea) {
+    chatTextarea.addEventListener('keydown', function(e) {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        if (this.value.trim() !== '') {
+          showToast('ส่งข้อความแล้ว ✓', 'success');
+          this.value = '';
+          this.style.height = 'auto';
+        }
+      }
+    });
+    // Auto-resize textarea
+    chatTextarea.addEventListener('input', function() {
+      this.style.height = 'auto';
+      this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+    });
+  }
+
+  /* ── Temperature Range Display ── */
+  document.querySelectorAll('input[type="range"]').forEach(range => {
+    range.addEventListener('input', function() {
+      const val = (this.value / 100).toFixed(1);
+      const display = this.parentElement.querySelector('span:nth-child(2)');
+      if (display) display.textContent = val;
+    });
+  });
+
+  /* ── Jobs Table Row Click ── */
+  document.querySelectorAll('tbody tr').forEach(row => {
+    row.addEventListener('click', function(e) {
+      // Don't trigger on button clicks
+      if (e.target.closest('button')) return;
+      document.querySelectorAll('tbody tr')
+        .forEach(r => r.style.background = '');
+      this.style.background = 'rgba(108,99,255,.07)';
+    });
+  });
+
+  /* ── Agent Card Click ── */
+  document.querySelectorAll('.agent-card').forEach(card => {
+    card.addEventListener('click', function(e) {
+      if (e.target.closest('button')) return;
+      document.querySelectorAll('.agent-card')
+        .forEach(c => c.style.boxShadow = '');
+      this.style.boxShadow = '0 0 0 2px var(--accent)';
+    });
+  });
+
+  /* ── Pagination ── */
+  document.querySelectorAll('.btn[onclick*="showToast"]').forEach(btn => {
+    // Already handled inline
+  });
+
+  /* ── Keyboard Shortcuts ── */
+  document.addEventListener('keydown', function(e) {
+    // Alt + number = switch page
+    if (e.altKey) {
+      const pageMap = {
+        '1':'home', '2':'chat',  '3':'studio',
+        '4':'agents','5':'tools','6':'jobs',
+        '7':'population','8':'developer','9':'profile'
+      };
+      if (pageMap[e.key]) {
+        e.preventDefault();
+        goPageById(pageMap[e.key]);
+        showToast('ไปหน้า: ' + pageMap[e.key], 'info');
+      }
+    }
+    // Ctrl+K = focus search (if visible)
+    if (e.ctrlKey && e.key === 'k') {
+      e.preventDefault();
+      const searchInput = document.querySelector('.page.active input[type="text"]');
+      if (searchInput) {
+        searchInput.focus();
+        showToast('🔍 ค้นหา...', 'info');
+      }
+    }
+  });
+
+  /* ── Clock in Topbar (Real-time) ── */
+  function updateClock() {
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString('th-TH', {
+      hour: '2-digit', minute: '2-digit', second: '2-digit',
+      timeZone: 'Asia/Bangkok'
+    });
+    const dateStr = now.toLocaleDateString('th-TH', {
+      weekday: 'short', year: 'numeric',
+      month: 'short', day: 'numeric',
+      timeZone: 'Asia/Bangkok'
+    });
+    const clockEl = document.getElementById('live-clock');
+    if (clockEl) clockEl.textContent = dateStr + ' · ' + timeStr;
+  }
+  setInterval(updateClock, 1000);
+  updateClock();
+
+  /* ── Animated Stats Counter ── */
+  function animateCounter(el, target, duration = 1200) {
+    let start = 0;
+    const step = target / (duration / 16);
+    const timer = setInterval(() => {
+      start += step;
+      if (start >= target) {
+        el.textContent = target.toLocaleString();
+        clearInterval(timer);
+      } else {
+        el.textContent = Math.floor(start).toLocaleString();
+      }
+    }, 16);
+  }
+
+  // Run counters on home page load
+  window.addEventListener('load', () => {
+    const statVals = document.querySelectorAll('#page-home .stat-value');
+    const targets = [12, 47, 24, 1200];
+    statVals.forEach((el, i) => {
+      if (targets[i] !== undefined) animateCounter(el, targets[i]);
+    });
+    // Welcome toast
+    showToast('ยินดีต้อนรับสู่ 01 AkentS 02 🚀', 'success');
+  });
+
+  /* ── Node Palette: Add node to canvas on drag ── */
+  const canvas = document.getElementById('studio-canvas');
+  if (canvas) {
+    canvas.addEventListener('dragover', e => e.preventDefault());
+    canvas.addEventListener('drop', function(e) {
+      e.preventDefault();
+      const canvasRect = this.getBoundingClientRect();
+      const x = e.clientX - canvasRect.left - 70;
+      const y = e.clientY - canvasRect.top  - 30;
+      const label = e.dataTransfer
+        ? e.dataTransfer.getData('text/plain') || 'New Node'
+        : 'New Node';
+
+      const node = document.createElement('div');
+      node.className = 'wf-node';
+      node.style.left = Math.max(10, x) + 'px';
+      node.style.top  = Math.max(10, y) + 'px';
+      node.innerHTML = `
+        <div class="wf-node-port port-in"></div>
+        <div class="wf-node-port port-out"></div>
+        <div style="font-size:18px;margin-bottom:.3rem;">🔧</div>
+        <div class="wf-node-label">${label}</div>
+        <div class="wf-node-type">ลาก &amp; วางแล้ว</div>`;
+
+      // Make new node draggable too
+      node.addEventListener('mousedown', function(ev) {
+        isDragging = true;
+        dragNode = this;
+        const rect = this.getBoundingClientRect();
+        offsetX = ev.clientX - rect.left;
+        offsetY = ev.clientY - rect.top;
+        ev.preventDefault();
+      });
+
+      this.appendChild(node);
+      showToast('เพิ่มโหนดใหม่แล้ว ✓', 'success');
+    });
+
+    // Set drag data on node chips
+    document.querySelectorAll('.node-chip').forEach(chip => {
+      chip.addEventListener('dragstart', function(e) {
+        const label = this.textContent.trim();
+        if (e.dataTransfer) e.dataTransfer.setData('text/plain', label);
+      });
+    });
+  }
+
+  /* ── Toggle Switch: show toast on change ── */
+  document.querySelectorAll('.toggle-switch input[type="checkbox"]').forEach(toggle => {
+    toggle.addEventListener('change', function() {
+      const label = this.closest('.settings-row, .tool-item');
+      const name  = label
+        ? (label.querySelector('.settings-row-label, .tool-name') || {}).textContent || 'การตั้งค่า'
+        : 'การตั้งค่า';
+      showToast(
+        (this.checked ? '✅ เปิดใช้งาน: ' : '⛔ ปิดใช้งาน: ') + name.trim(),
+        this.checked ? 'success' : 'info'
+      );
+    });
+  });
+
+  /* ── Profile: Save Button ── */
+  document.querySelectorAll('input, textarea, select').forEach(el => {
+    el.addEventListener('change', function() {
+      // Mark unsaved changes indicator (subtle)
+      const saveBtn = document.querySelector('#page-profile .btn-primary');
+      if (saveBtn) {
+        saveBtn.textContent = '💾 บันทึก *';
+        saveBtn.style.animation = 'pulse 1s infinite';
+      }
+    });
+  });
+
+  /* ── Population: Member Row Hover Detail ── */
+  document.querySelectorAll('.member-row').forEach(row => {
+    row.addEventListener('click', function(e) {
+      if (e.target.closest('button')) return;
+      const name = this.querySelector('.member-name').textContent;
+      showToast('👤 ดูโปรไฟล์: ' + name, 'info');
+    });
+  });
+
+  /* ── Pulse Animation ── */
+  const styleExtra = document.createElement('style');
+  styleExtra.textContent = `
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: .55; }
+    }
+    .msg.agent .msg-bubble span {
+      display: inline-block;
+      animation: pulse .8s infinite;
+    }
+    .wf-node { transition: box-shadow .15s, border-color .15s; }
+    .wf-node:hover { box-shadow: 0 0 0 2px rgba(108,99,255,.35); }
+    .nav-item { user-select: none; }
+    tbody tr { cursor: pointer; transition: background .12s; }
+    .profile-btn { user-select: none; }
+  `;
+  document.head.appendChild(styleExtra);
+
+  /* ── Live Clock: inject element into home topbar ── */
+  const homeTopbar = document.querySelector('#page-home .topbar');
+  if (homeTopbar) {
+    const clockDiv = document.createElement('div');
+    clockDiv.id = 'live-clock';
+    clockDiv.style.cssText = `
+      font-size:11px;color:var(--text-muted);
+      font-family:'JetBrains Mono','Fira Code',monospace;
+      margin-left:.5rem;
+    `;
+    homeTopbar.insertBefore(clockDiv, homeTopbar.querySelector('.topbar-actions'));
+    updateClock();
+  }
+
+  /* ── Init: set active nav based on first page ── */
+  (function init() {
+    const firstNav = document.querySelector('.nav-item');
+    if (firstNav) firstNav.classList.add('active');
+  })();
+
+</script>
+
+</body>
+</html>
